@@ -2,22 +2,24 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
+	"log"
 	"strconv"
-	"github.com/jtakamine/dodecahedronci/handlers"
+	"github.com/jtakamine/dodecahedronci/dodecci/internal/handlers"
 )
 
 func main() {
 	port := parseArgs()
 
 	http.HandleFunc("/", handlers.Handle)
-	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
 
+	log.Printf("Listening on port %v\n", port)
+	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	
 	if(err != nil) {
-		fmt.Println("An error occurred while instantiating the http server:\n", err)
+		log.Println("An error occurred while instantiating the http server:\n", err)
 	} else {
-		fmt.Println("Http server exited.")
+		log.Println("Http server exited.")
 	}
 }
 

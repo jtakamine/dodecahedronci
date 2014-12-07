@@ -1,9 +1,14 @@
+#!/bin/bash
+
+cd "${0%/*}"
+
 echo "Building..."
-go build ../handlers
+go build "./internal/handlers"
 go build
 
 echo "Installing..."
 go install
 
 echo "Running..."
-sudo env "PATH=$PATH" dodec
+#sudo env "PATH=$PATH" dodecci
+dodecci -port 8000
