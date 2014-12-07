@@ -6,6 +6,8 @@ import (
 	"log"
 	"bytes"
 	"os/exec"
+	"os"
+	"strconv"
 )
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +24,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestBuild(req.Repository.Ssh_url)
+	requestBuild(req.Repository.Id, req.Repository.Ssh_url)
 }
 
 type gitHubReq struct {
@@ -30,6 +32,7 @@ type gitHubReq struct {
 }
 
 type gitHubRepo struct {
+	Id int
 	Ssh_url string
 }
 
@@ -37,16 +40,20 @@ type gitHubRepo struct {
 // to some queue which is asynchronously consumed by a separate
 // build server.  For now, we execute the build synchronously
 // on the same server.
-func requestBuild(url string) {
-	log.Printf("Triggering build for repo with url: %v\n", url)
+func requestBuild(repoId int, repoUrl string) {
+	log.Printf("Triggering build for repo with url: %v\n", repoUrl)
 
-	dir := "/var/lib/dodecci/"
+	dir := "/var/lib/dodecci/" + strconv.Itoa(repoId)
 
-	cmd := exec.Command("git", "clone", url, dir + "dodecci/")
+	cmd := exec.Command("git", "clone", repoUrl, dir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	//Right now this causes an error. Need to figure out ssh keys, or do username/password with https github url.
 	err := cmd.Run()
 	if err != nil {
 		log.Panicf("Error running git clone: %v\n", err)
 	}
+}
+
+func cloneGitRepo(url string) {
 }
