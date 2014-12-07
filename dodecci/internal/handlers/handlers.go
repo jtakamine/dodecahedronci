@@ -45,13 +45,21 @@ func requestBuild(repoId int, repoUrl string) {
 
 	dir := "/var/lib/dodecci/" + strconv.Itoa(repoId)
 
-	cmd := exec.Command("git", "clone", repoUrl, dir)
+	var cmd *exec.Cmd
+
+	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
+		cmd = exec.Command("git", "clone", repoUrl, dir)
+	} else {
+		cmd = exec.Command("git", "pull", repoUrl)
+		cmd.Dir = dir
+	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
-		log.Panicf("Error running git clone: %v\n", err)
+		log.Panicf("Error running git operation: %v\n", err)
 	}
 }
 
