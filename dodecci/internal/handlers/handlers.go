@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"os"
 	"strconv"
+	"path/filepath"
 )
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -71,5 +72,32 @@ func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
 }
 
 func buildDockerImages(repoDir string) {
+	dockerFiles := []string{}
 
+	walk := func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && info.Name() == "Dockerfile" {
+			dockerFiles = append(dockerFiles, path)
+		}
+
+		return nil
+	}
+
+	err := filepath.Walk(repoDir, walk)
+	if err != nil {
+		log.Panicf("Error walking the directory \"%v\": %v\n", repoDir, err)
+	}
+
+	for _,dFile := range dockerFiles {
+		log.Printf("Building Docker file: %v\n", dFile)
+		cmd := exec.Command("/bin/sh", "-c", "sudo docker build -t \"jtakamine/autobuild\" .")
+		cmd.Dir = filepath.Dir(dFile)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			log.Panicf("Error building Dockerfile: %v\n", err)
+		}
+	}
 }
+
