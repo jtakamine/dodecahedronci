@@ -36,13 +36,18 @@ type gitHubRepo struct {
 	Ssh_url string
 }
 
-//Ideally, this method should send an a build request
+//Ideally, this method should send a build request
 // to some queue which is asynchronously consumed by a separate
 // build server.  For now, we execute the build synchronously
-// on the same server.
+// and on the same server.
 func requestBuild(repoId int, repoUrl string) {
 	log.Printf("Triggering build for repo with url: %v\n", repoUrl)
 
+	repoDir := cloneOrUpdateGitRepo(repoId, repoUrl)
+	buildDockerImages(repoDir)
+}
+
+func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
 	dir := "/var/lib/dodecci/" + strconv.Itoa(repoId)
 
 	var cmd *exec.Cmd
@@ -61,7 +66,10 @@ func requestBuild(repoId int, repoUrl string) {
 	if err != nil {
 		log.Panicf("Error running git operation: %v\n", err)
 	}
+
+	return dir
 }
 
-func cloneGitRepo(url string) {
+func buildDockerImages(repoDir string) {
+
 }
