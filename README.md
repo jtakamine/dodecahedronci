@@ -3,11 +3,11 @@ DodecahedronCI
 
 Required Environment Variables:
 * DODEC\_HOME
-  * DODEC\_GITHUB\_USER
-  * DODEC\_GITHUB\_PASSWORD
-  * DODEC\_DOCKER\_USER
-  * DODEC\_DOCKER\_PASSWORD
-  * DODEC\_DOCKER\_EMAIL
+* DODEC\_GITHUB\_USER
+* DODEC\_GITHUB\_PASSWORD
+* DODEC\_DOCKER\_USER
+* DODEC\_DOCKER\_PASSWORD
+* DODEC\_DOCKER\_EMAIL
 
 TODO:
 * Make things work well when containerized
