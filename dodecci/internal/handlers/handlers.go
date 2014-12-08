@@ -29,12 +29,10 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 type gitHubReq struct {
-	Repository gitHubRepo
-}
-
-type gitHubRepo struct {
-	Id int
-	Ssh_url string
+	Repository struct {
+		Id int
+		Ssh_url string
+	}
 }
 
 //Ideally, this method should send a build request
@@ -100,6 +98,13 @@ func buildDockerImages(repoDir string) {
 			log.Panicf("Error building Dockerfile: %v\n", err)
 		}
 
+		//Commenting out the below--do not automatically push to Docker repo
+		//  for now (it's slow).  Instead, assume that dodecdeploy will run on
+		//  the same server/container, so it will have access to the "local"
+		//  repo which will be automatically available as soon as a Docker image
+		//  is built.
+
+		/*
 		cmd = exec.Command("docker", "push", "jtakamine/autobuild")
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
@@ -108,6 +113,6 @@ func buildDockerImages(repoDir string) {
 		err = cmd.Run()
 		if err != nil {
 			log.Panicf("Error pushing Docker image: %v\n", err)
-		}
+		}*/
 	}
 }
