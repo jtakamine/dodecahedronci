@@ -20,7 +20,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body) 
+		buf.ReadFrom(r.Body)
 		log.Panicf("Could not parse JSON: %v\n", err)
 		return
 	}
@@ -89,7 +89,8 @@ func buildDockerImages(repoDir string) {
 
 	for _,dFile := range dockerFiles {
 		log.Printf("Building Docker file: %v\n", dFile)
-		cmd := exec.Command("/bin/sh", "-c", "sudo docker build -t \"jtakamine/autobuild\" .")
+
+		cmd := exec.Command("docker", "build", "-t", "jtakamine/autobuild", ".")
 		cmd.Dir = filepath.Dir(dFile)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -98,6 +99,15 @@ func buildDockerImages(repoDir string) {
 		if err != nil {
 			log.Panicf("Error building Dockerfile: %v\n", err)
 		}
+
+		cmd = exec.Command("docker", "push", "jtakamine/autobuild")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			log.Panicf("Error pushing Docker image: %v\n", err)
+		}
 	}
 }
-
