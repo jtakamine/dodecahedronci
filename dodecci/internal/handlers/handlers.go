@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"path/filepath"
+	"github.com/jtakamine/dodecahedronci/config"
 )
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +48,7 @@ func requestBuild(repoId int, repoUrl string) {
 }
 
 func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
-	dir := "/var/lib/dodecci/" + strconv.Itoa(repoId)
+	dir := config.Get("DODEC_HOME") + strconv.Itoa(repoId)
 
 	var cmd *exec.Cmd
 
@@ -88,7 +89,7 @@ func buildDockerImages(repoDir string) {
 	for _,dFile := range dockerFiles {
 		log.Printf("Building Docker file: %v\n", dFile)
 
-		cmd := exec.Command("docker", "build", "-t", "jtakamine/autobuild", ".")
+		cmd := exec.Command("docker", "build", "-t", config.Get("DODEC_DOCKER_USER") + "/builtbydodec", ".")
 		cmd.Dir = filepath.Dir(dFile)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
