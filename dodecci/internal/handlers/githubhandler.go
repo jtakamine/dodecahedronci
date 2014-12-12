@@ -38,9 +38,6 @@ func gitHubHandle(w http.ResponseWriter, r *http.Request) {
 func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
 	dir := strings.TrimSuffix(config.Get("DODEC_HOME"), "/") + "/" + strconv.Itoa(repoId)
 
-	log.Printf("dir: %v\n", dir)
-	log.Printf("DODEC_HOME: %v\n", config.Get("DODEC_HOME"))
-
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
