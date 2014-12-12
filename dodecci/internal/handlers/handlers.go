@@ -2,72 +2,18 @@ package handlers
 
 import (
 	"net/http"
-	"encoding/json"
 	"log"
-	"bytes"
 	"os/exec"
 	"os"
-	"strconv"
+	"bufio"
 	"path/filepath"
+	"strings"
 	"github.com/jtakamine/dodecahedronci/config"
 )
 
 func Handle(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-
-	req := &gitHubReq{}
-
-	err := decoder.Decode(req)
-
-	if err != nil {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
-		log.Panicf("Could not parse JSON: %v\n", err)
-		return
-	}
-
-	requestBuild(req.Repository.Id, req.Repository.Ssh_url)
-}
-
-type gitHubReq struct {
-	Repository struct {
-		Id int
-		Ssh_url string
-	}
-}
-
-//Ideally, this method should send a build request
-// to some queue which is asynchronously consumed by a separate
-// build server.  For now, we execute the build synchronously
-// and on the same server.
-func requestBuild(repoId int, repoUrl string) {
-	log.Printf("Triggering build for repo with url: %v\n", repoUrl)
-
-	repoDir := cloneOrUpdateGitRepo(repoId, repoUrl)
-	buildDockerImages(repoDir)
-}
-
-func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
-	dir := config.Get("DODEC_HOME") + strconv.Itoa(repoId)
-
-	var cmd *exec.Cmd
-
-	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
-		cmd = exec.Command("git", "clone", repoUrl, dir)
-	} else {
-		cmd = exec.Command("git", "pull", repoUrl)
-		cmd.Dir = dir
-	}
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		log.Panicf("Error running git operation: %v\n", err)
-	}
-
-	return dir
+	//Eventually, take a look at the header/body to determine which handler to use.  For now assume it's a github request
+	gitHubHandle(w, r)
 }
 
 func buildDockerImages(repoDir string) {
@@ -116,4 +62,28 @@ func buildDockerImages(repoDir string) {
 			log.Panicf("Error pushing Docker image: %v\n", err)
 		}*/
 	}
+}
+
+func getImageNameHint(dockerFile string) string {
+	hintPrefix := "#imagenamehint:"
+
+	file, err := os.Open(dockerFile)
+	if err != nil {
+		log.Panicf("Error opening Dockerfile: %v\n", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, hintPrefix) {
+			return strings.TrimPrefix(line, hintPrefix)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Panicf("Error reading Dockerfile: %v\n", err)
+	}
+
+	return ""
 }
