@@ -1,8 +1,9 @@
 package config
 
 import (
-	"os"
 	"encoding/json"
+	"errors"
+	"os"
 )
 
 //Valid config settings:
@@ -14,7 +15,7 @@ import (
 // DODEC_DOCKER_PASSWORD
 // DODEC_DOCKER_EMAIL
 
-func Load(configFile string) (error) {
+func Load(configFile string) error {
 	file, err_open := os.Open(configFile)
 	if err_open != nil {
 		return err_open
@@ -42,4 +43,23 @@ func Get(key string) string {
 
 func Set(key string, val string) {
 	os.Setenv(key, val)
+}
+
+func Require(keys []string) error {
+	missingKeys := []string{}
+	for _, key := range keys {
+		if Get(key) == "" {
+			missingKeys = append(missingKeys, key)
+		}
+	}
+	if len(missingKeys) > 0 {
+		err := "The following configuration values are required, but were not supplied:\n"
+		for _, key := range missingKeys {
+			err += "\t- " + key + "\n"
+		}
+
+		return errors.New(err)
+	}
+
+	return nil
 }

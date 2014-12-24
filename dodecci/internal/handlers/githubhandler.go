@@ -1,20 +1,20 @@
 package handlers
 
 import (
-	"net/http"
 	"bytes"
+	"encoding/json"
+	"github.com/jtakamine/dodecahedronci/config"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
-	"encoding/json"
-	"github.com/jtakamine/dodecahedronci/config"
 )
 
 type gitHubReq struct {
 	Repository struct {
-		Id int
+		Id      int
 		Ssh_url string
 	}
 }
@@ -41,8 +41,10 @@ func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
+		log.Println("Cloning git repo.")
 		cmd = exec.Command("git", "clone", repoUrl, dir)
 	} else {
+		log.Println("Pulling git repo.")
 		cmd = exec.Command("git", "pull", repoUrl)
 		cmd.Dir = dir
 	}
