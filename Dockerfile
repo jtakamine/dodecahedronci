@@ -1,3 +1,5 @@
+#imagenamehint:dodecci
+
 FROM golang
 
 ADD . /go/src/github.com/jtakamine/dodecahedronci

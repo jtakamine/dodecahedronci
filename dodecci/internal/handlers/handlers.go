@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"net/http"
-	"log"
-	"os/exec"
-	"os"
 	"bufio"
+	"github.com/jtakamine/dodecahedronci/config"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-	"github.com/jtakamine/dodecahedronci/config"
 )
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -32,10 +32,12 @@ func buildDockerImages(repoDir string) {
 		log.Panicf("Error walking the directory \"%v\": %v\n", repoDir, err)
 	}
 
-	for _,dFile := range dockerFiles {
+	for _, dFile := range dockerFiles {
 		log.Printf("Building Docker file: %v\n", dFile)
 
-		cmd := exec.Command("docker", "build", "-t", config.Get("DODEC_DOCKER_USER") + "/builtbydodec", ".")
+		imgName := getImageNameHint(dFile)
+
+		cmd := exec.Command("docker", "build", "-t", config.Get("DODEC_DOCKER_USER")+"/"+imgName, ".")
 		cmd.Dir = filepath.Dir(dFile)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -68,5 +70,5 @@ func getImageNameHint(dockerFile string) string {
 		log.Panicf("Error reading Dockerfile: %v\n", err)
 	}
 
-	return ""
+	return "builtbydodecci"
 }
