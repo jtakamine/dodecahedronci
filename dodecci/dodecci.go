@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/jtakamine/dodecahedronci/config"
-	"github.com/jtakamine/dodecahedronci/dodecci/internal/handlers"
+	"github.com/jtakamine/dodecahedronci/dodecci/handlers"
 	"log"
 	"net/http"
 	"strconv"
