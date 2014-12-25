@@ -3,7 +3,7 @@
 cd "${0%/*}"
 
 echo "Building..."
-go build "./internal/handlers"
+go build "./handlers"
 go build "../config"
 go build
 

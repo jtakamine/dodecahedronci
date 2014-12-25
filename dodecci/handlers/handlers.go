@@ -70,5 +70,6 @@ func getImageNameHint(dockerFile string) string {
 		log.Panicf("Error reading Dockerfile: %v\n", err)
 	}
 
+	//default arbitrarily to "builtbydodecci" if no hint was found
 	return "builtbydodecci"
 }
