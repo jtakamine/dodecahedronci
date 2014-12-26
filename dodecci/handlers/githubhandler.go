@@ -3,13 +3,8 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/jtakamine/dodecahedronci/config"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
-	"strconv"
-	"strings"
 )
 
 type gitHubReq struct {
