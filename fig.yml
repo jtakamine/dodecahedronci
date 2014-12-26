@@ -1,0 +1,11 @@
+dodecci:
+        build: ./dodecci
+        ports:
+                - "8000:8000"
+        environment:
+                DODEC_HOME:
+                DODEC_GITHUB_USER:
+                DODEC_GITHUB_PASSWORD:
+                DODEC_DOCKER_USER:
+                DODEC_DOCKER_PASSWORD:
+                DODEC_DOCKER_EMAIL:
