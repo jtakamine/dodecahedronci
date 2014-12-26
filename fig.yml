@@ -9,3 +9,4 @@ dodecci:
                 DODEC_DOCKER_USER:
                 DODEC_DOCKER_PASSWORD:
                 DODEC_DOCKER_EMAIL:
+        privileged: true

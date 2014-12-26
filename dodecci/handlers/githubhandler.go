@@ -14,8 +14,9 @@ import (
 
 type gitHubReq struct {
 	Repository struct {
-		Id      int
-		Ssh_url string
+		Id        int
+		Ssh_url   string
+		Clone_url string
 	}
 }
 
@@ -31,7 +32,7 @@ func gitHubHandle(w http.ResponseWriter, r *http.Request) {
 		log.Panicf("Could not parse JSON: %v\n", err)
 	}
 
-	repoDir := cloneOrUpdateGitRepo(req.Repository.Id, req.Repository.Ssh_url)
+	repoDir := cloneOrUpdateGitRepo(req.Repository.Id, req.Repository.Clone_url)
 	buildDockerImages(repoDir)
 }
 
@@ -41,10 +42,10 @@ func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
-		log.Println("Cloning git repo.")
+		log.Printf("Cloning git repo from %v\n", repoUrl)
 		cmd = exec.Command("git", "clone", repoUrl, dir)
 	} else {
-		log.Println("Pulling git repo.")
+		log.Printf("Pulling git repo from %v\n", repoUrl)
 		cmd = exec.Command("git", "pull", repoUrl)
 		cmd.Dir = dir
 	}
