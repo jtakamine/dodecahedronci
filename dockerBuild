@@ -3,7 +3,7 @@
 function process {
 	cp $1 Dockerfile
 	params=$@
-	command=( "docker" "build" "${params[@]/$1}" "." )
+	command=( "docker" "build" "${params[@]/$1}" )
 	${command[@]}
 }
 
