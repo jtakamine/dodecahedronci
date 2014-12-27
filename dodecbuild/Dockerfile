@@ -22,14 +22,15 @@ RUN chmod +x /usr/local/bin/wrapdocker
 
 VOLUME /var/lib/docker
 
+# Get Go packages
 RUN go get github.com/jtakamine/dodecahedronci/config
-
-ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
-
 RUN go get gopkg.in/yaml.v2
 
+# Get source and install application
+ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 
+# Run application
 CMD /usr/local/bin/wrapdocker & /go/bin/dodecbuild -port 8000
 
 EXPOSE 8000
