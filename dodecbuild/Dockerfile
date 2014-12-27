@@ -24,10 +24,10 @@ VOLUME /var/lib/docker
 
 RUN go get github.com/jtakamine/dodecahedronci/config
 
-ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecci
+ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 
-RUN go install github.com/jtakamine/dodecahedronci/dodecci
+RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 
-CMD /usr/local/bin/wrapdocker & /go/bin/dodecci -port 8000
+CMD /usr/local/bin/wrapdocker & /go/bin/dodecbuild -port 8000
 
 EXPOSE 8000
