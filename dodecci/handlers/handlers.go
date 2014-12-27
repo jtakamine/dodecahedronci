@@ -18,8 +18,6 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Panicf("Error handling GitHub request: %v\n", err)
 	}
-
-	return
 }
 
 func cloneOrUpdateGitRepo(repoId int, repoUrl string) (dir string, err error) {
