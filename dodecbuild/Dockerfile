@@ -26,6 +26,8 @@ RUN go get github.com/jtakamine/dodecahedronci/config
 
 ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 
+RUN go get gopkg.in/yaml.v2
+
 RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 
 CMD /usr/local/bin/wrapdocker & /go/bin/dodecbuild -port 8000

@@ -3,15 +3,18 @@ package main
 import (
 	"bufio"
 	"github.com/jtakamine/dodecahedronci/config"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
 func buildDockerImages(repoDir string) (err error) {
-	dFiles, err := getDockerfiles(repoDir)
+	dFiles, err := getDFiles(repoDir)
 	if err != nil {
 		return err
 	}
@@ -38,14 +41,18 @@ func buildDockerImages(repoDir string) (err error) {
 	return nil
 }
 
-func getDockerfiles(dir string) (dFiles []string, err error) {
+func getDFiles(dir string) (dFiles []string, err error) {
 	dFiles = []string{}
 	walk := func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() && strings.HasSuffix(info.Name(), "Dockerfile") {
-			dFiles = append(dFiles, path)
+		if !info.IsDir() && strings.EqualFold(info.Name(), "fig.yml") {
+			files, err := getDFilesFromFigYml(path)
+			if err != nil {
+				return err
+			}
+			dFiles = append(dFiles, files...)
 		}
 
-		return err
+		return nil
 	}
 
 	err = filepath.Walk(dir, walk)
@@ -56,11 +63,39 @@ func getDockerfiles(dir string) (dFiles []string, err error) {
 	return dFiles, nil
 }
 
-func getImageNameHint(dockerFile string) (hint string, err error) {
+func getDFilesFromFigYml(fyml string) (dFiles []string, err error) {
+	dFiles = []string{}
+
+	data, err := ioutil.ReadFile(fyml)
+	if err != nil {
+		return nil, err
+	}
+
+	config := make(map[string]interface{})
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range config {
+		if m, ok := v.(map[interface{}]interface{}); ok {
+			buildPath := m["build"]
+			if buildPath != nil {
+				file := path.Join(path.Dir(fyml), buildPath.(string), "Dockerfile")
+				dFiles = append(dFiles, file)
+				log.Printf("dFile: %s\n", file)
+			}
+		}
+	}
+
+	return dFiles, nil
+}
+
+func getImageNameHint(dFile string) (hint string, err error) {
 	hint = "builtbydodecci" //default image name hint
 	hintPrefix := "#imagenamehint:"
 
-	file, err := os.Open(dockerFile)
+	file, err := os.Open(dFile)
 	if err != nil {
 		return "", nil
 	}
