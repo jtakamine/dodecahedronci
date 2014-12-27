@@ -12,9 +12,7 @@ func TestMain(t *testing.T) {
 	var err error
 	var cmd *exec.Cmd
 
-	cmd = exec.Command("fig", "kill")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd = createCmd("fig", "kill")
 	cmd.Dir = ".."
 
 	err = cmd.Run()
@@ -22,9 +20,7 @@ func TestMain(t *testing.T) {
 		t.Error(err)
 	}
 
-	cmd = exec.Command("fig", "rm", "--force")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd = createCmd("fig", "rm", "--force")
 	cmd.Dir = ".."
 
 	err = cmd.Run()
@@ -32,9 +28,7 @@ func TestMain(t *testing.T) {
 		t.Error(err)
 	}
 
-	cmd = exec.Command("fig", "build")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd = createCmd("fig", "build")
 	cmd.Dir = ".."
 
 	err = cmd.Run()
@@ -42,9 +36,7 @@ func TestMain(t *testing.T) {
 		t.Error(err)
 	}
 
-	cmd = exec.Command("fig", "up", "-d")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd = createCmd("fig", "up", "-d")
 	cmd.Dir = ".."
 
 	err = cmd.Run()
@@ -70,4 +62,13 @@ func testWebhook(t *testing.T) {
 		t.Error(err)
 	}
 	resp.Body.Close()
+}
+
+func createCmd(name string, arg ...string) *exec.Cmd {
+	cmd := exec.Command(name, arg...)
+
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
+	return cmd
 }
