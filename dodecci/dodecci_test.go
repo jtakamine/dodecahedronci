@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"net/http"
 	"os"
 	"os/exec"
 	"testing"
@@ -50,13 +52,22 @@ func TestMain(t *testing.T) {
 		t.Error(err)
 	}
 
-	payload := "{\"repository\":{\"id\":1234567,\"ssh_url\":\"git@github.com:jtakamine/dodecahedronci.git\", \"clone_url\":\"https://github.com/progrium/logspout.git\"}}"
-	cmd = exec.Command("curl", "-H", "Content-Type: application/json", "-d", payload, "http://localhost:8000")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	testWebhook(t)
+}
 
-	err = cmd.Run()
+func testWebhook(t *testing.T) {
+	var err error
+	var req *http.Request
+	var resp *http.Response
+
+	payload := "{\"repository\":{\"id\":1234567,\"ssh_url\":\"git@github.com:jtakamine/dodecahedronci.git\", \"clone_url\":\"https://github.com/progrium/logspout.git\"}}"
+	req, err = http.NewRequest("POST", "http://localhost:8000", bytes.NewBufferString(payload))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err = client.Do(req)
 	if err != nil {
 		t.Error(err)
 	}
+	resp.Body.Close()
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -29,4 +30,5 @@ func gitHubHandle(w http.ResponseWriter, r *http.Request) {
 
 	repoDir := cloneOrUpdateGitRepo(req.Repository.Id, req.Repository.Clone_url)
 	buildDockerImages(repoDir)
+	fmt.Fprint(w, "hi")
 }
