@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"github.com/jtakamine/dodecahedronci/config"
-	"github.com/jtakamine/dodecahedronci/dodecci/handlers"
 	"log"
 	"net/http"
 	"strconv"
@@ -16,7 +15,7 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/", handlers.Handle)
+	http.HandleFunc("/", handle)
 
 	log.Printf("Listening on port %v\n", port)
 	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
