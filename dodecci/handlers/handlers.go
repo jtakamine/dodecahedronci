@@ -14,35 +14,42 @@ import (
 
 func Handle(w http.ResponseWriter, r *http.Request) {
 	//Eventually, take a look at the header/body to determine which handler to use.  For now assume it's a github request
-	gitHubHandle(w, r)
+	err := gitHubHandle(w, r)
+	if err != nil {
+		log.Panicf("Error handling GitHub request: %v\n", err)
+	}
+
+	return
 }
 
-func cloneOrUpdateGitRepo(repoId int, repoUrl string) string {
-	dir := strings.TrimSuffix(config.Get("DODEC_HOME"), "/") + "/" + strconv.Itoa(repoId)
+func cloneOrUpdateGitRepo(repoId int, repoUrl string) (dir string, err error) {
+	dir = strings.TrimSuffix(config.Get("DODEC_HOME"), "/") + "/" + strconv.Itoa(repoId)
 
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
 		log.Printf("Cloning git repo from %v\n", repoUrl)
 		cmd = exec.Command("git", "clone", repoUrl, dir)
-	} else {
+	} else if err == nil {
 		log.Printf("Pulling git repo from %v\n", repoUrl)
 		cmd = exec.Command("git", "pull", repoUrl)
 		cmd.Dir = dir
+	} else {
+		return "", err
 	}
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		log.Panicf("Error running git operation: %v\n", err)
+		return "", err
 	}
 
-	return dir
+	return dir, nil
 }
 
-func buildDockerImages(repoDir string) {
+func buildDockerImages(repoDir string) (err error) {
 	dockerFiles := []string{}
 
 	walk := func(path string, info os.FileInfo, err error) error {
@@ -50,37 +57,43 @@ func buildDockerImages(repoDir string) {
 			dockerFiles = append(dockerFiles, path)
 		}
 
-		return nil
+		return err
 	}
 
-	err := filepath.Walk(repoDir, walk)
+	err = filepath.Walk(repoDir, walk)
 	if err != nil {
-		log.Panicf("Error walking the directory \"%v\": %v\n", repoDir, err)
+		return err
 	}
 
 	for _, dFile := range dockerFiles {
 		log.Printf("Building Docker file: %v\n", dFile)
 
-		imgName := getImageNameHint(dFile)
+		imgName, err := getImageNameHint(dFile)
+		if err != nil {
+			return err
+		}
 
 		cmd := exec.Command("docker", "build", "-t", config.Get("DODEC_DOCKER_USER")+"/"+imgName, ".")
 		cmd.Dir = filepath.Dir(dFile)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
-		err := cmd.Run()
+		err = cmd.Run()
 		if err != nil {
-			log.Panicf("Error building Dockerfile: %v\n", err)
+			return err
 		}
 	}
+
+	return nil
 }
 
-func getImageNameHint(dockerFile string) string {
+func getImageNameHint(dockerFile string) (hint string, err error) {
+	hint = "builtbydodecci" //default image name hint
 	hintPrefix := "#imagenamehint:"
 
 	file, err := os.Open(dockerFile)
 	if err != nil {
-		log.Panicf("Error opening Dockerfile: %v\n", err)
+		return "", nil
 	}
 	defer file.Close()
 
@@ -88,14 +101,15 @@ func getImageNameHint(dockerFile string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, hintPrefix) {
-			return strings.TrimPrefix(line, hintPrefix)
+			hint = strings.TrimPrefix(line, hintPrefix)
+			return hint, nil
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Panicf("Error reading Dockerfile: %v\n", err)
+	err = scanner.Err()
+	if err != nil {
+		return "", err
 	}
 
-	//default arbitrarily to "builtbydodecci" if no hint was found
-	return "builtbydodecci"
+	return hint, nil
 }

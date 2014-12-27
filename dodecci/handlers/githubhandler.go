@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -16,19 +14,26 @@ type gitHubReq struct {
 	}
 }
 
-func gitHubHandle(w http.ResponseWriter, r *http.Request) {
+func gitHubHandle(w http.ResponseWriter, r *http.Request) (err error) {
 	req := &gitHubReq{}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(req)
-
+	err = decoder.Decode(req)
 	if err != nil {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
-		log.Panicf("Could not parse JSON: %v\n", err)
+		return err
 	}
 
-	repoDir := cloneOrUpdateGitRepo(req.Repository.Id, req.Repository.Clone_url)
-	buildDockerImages(repoDir)
-	fmt.Fprint(w, "hi")
+	repoDir, err := cloneOrUpdateGitRepo(req.Repository.Id, req.Repository.Clone_url)
+	if err != nil {
+		return err
+	}
+
+	err = buildDockerImages(repoDir)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprint(w, "build successful\n")
+
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+	"time"
 )
 
 func TestMain(t *testing.T) {
@@ -43,6 +44,8 @@ func TestMain(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	time.Sleep(5 * time.Second)
 
 	testWebhook(t)
 }
