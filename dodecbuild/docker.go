@@ -11,22 +11,12 @@ import (
 )
 
 func buildDockerImages(repoDir string) (err error) {
-	dockerFiles := []string{}
-
-	walk := func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() && strings.HasSuffix(info.Name(), "Dockerfile") {
-			dockerFiles = append(dockerFiles, path)
-		}
-
-		return err
-	}
-
-	err = filepath.Walk(repoDir, walk)
+	dFiles, err := getDockerfiles(repoDir)
 	if err != nil {
 		return err
 	}
 
-	for _, dFile := range dockerFiles {
+	for _, dFile := range dFiles {
 		log.Printf("Building Docker file: %v\n", dFile)
 
 		imgName, err := getImageNameHint(dFile)
@@ -46,6 +36,24 @@ func buildDockerImages(repoDir string) (err error) {
 	}
 
 	return nil
+}
+
+func getDockerfiles(dir string) (dFiles []string, err error) {
+	dFiles = []string{}
+	walk := func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && strings.HasSuffix(info.Name(), "Dockerfile") {
+			dFiles = append(dFiles, path)
+		}
+
+		return err
+	}
+
+	err = filepath.Walk(dir, walk)
+	if err != nil {
+		return nil, err
+	}
+
+	return dFiles, nil
 }
 
 func getImageNameHint(dockerFile string) (hint string, err error) {
