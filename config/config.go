@@ -6,15 +6,6 @@ import (
 	"os"
 )
 
-//Valid config settings:
-//
-// DODEC_HOME
-// DODEC_GITHUB_USER
-// DODEC_GITHUB_PASSWORD
-// DODEC_DOCKER_USER
-// DODEC_DOCKER_PASSWORD
-// DODEC_DOCKER_EMAIL
-
 func Load(configFile string) error {
 	file, err_open := os.Open(configFile)
 	if err_open != nil {
