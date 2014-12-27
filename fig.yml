@@ -1,5 +1,5 @@
-dodecci:
-        build: ./dodecci
+dodecbuild:
+        build: ./dodecbuild
         ports:
                 - "8000:8000"
         environment:
