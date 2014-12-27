@@ -17,7 +17,7 @@ RUN echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/
         && apt-get install -qqy lxc-docker
 
 # Install the magic wrapper
-ADD ./wrapdocker /usr/local/bin/wrapdocker
+ADD ./utils/wrapdocker /usr/local/bin/wrapdocker
 RUN chmod +x /usr/local/bin/wrapdocker
 
 VOLUME /var/lib/docker
