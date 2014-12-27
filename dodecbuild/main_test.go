@@ -20,7 +20,34 @@ func TestMain(t *testing.T) {
 
 	time.Sleep(5 * time.Second)
 
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
+}
+
+func TestMainShort(t *testing.T) {
+	var err error
+	var cmd *exec.Cmd
+
+	cmd = createCmd("go", "install")
+
+	err = cmd.Run()
+	if err != nil {
+		t.Error(err)
+	}
+
+	var dodecbuildCmd *exec.Cmd
+	go func() {
+		dodecbuildCmd = createCmd("dodecbuild", "--port", "8000")
+
+		err = dodecbuildCmd.Run()
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+	time.Sleep(500 * time.Millisecond)
+
+	defer dodecbuildCmd.Process.Kill()
+
+	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
 }
 
 func figKillAndRm(t *testing.T) {
@@ -62,33 +89,6 @@ func figUp(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-}
-
-func TestMainShort(t *testing.T) {
-	var err error
-	var cmd *exec.Cmd
-
-	cmd = createCmd("go", "install")
-
-	err = cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-
-	var dodecbuildCmd *exec.Cmd
-	go func() {
-		dodecbuildCmd = createCmd("dodecbuild", "--port", "8000")
-
-		err = dodecbuildCmd.Run()
-		if err != nil {
-			t.Error(err)
-		}
-	}()
-	time.Sleep(500 * time.Millisecond)
-
-	defer dodecbuildCmd.Process.Kill()
-
-	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
 }
 
 func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
