@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func handle(w http.ResponseWriter, r *http.Request) {
+func httpHandle(w http.ResponseWriter, r *http.Request) {
 	//Eventually, take a look at the header/body to determine which handler to use.  For now assume it's a github request
 	repoUrl, err := parseGitHubRequest(w, r)
 	if err != nil {

@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/", handle)
+	http.HandleFunc("/", httpHandle)
 
 	log.Printf("Listening on port %v\n", port)
 	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
