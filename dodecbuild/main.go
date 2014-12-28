@@ -4,26 +4,22 @@ import (
 	"flag"
 	"github.com/jtakamine/dodecahedronci/config"
 	"log"
-	"net/http"
 	"strconv"
 )
 
 func main() {
 	port := parseArgs()
+	log.Printf("Listening on port %v\n", port)
 
 	if !validateConfig() {
 		return
 	}
 
-	http.HandleFunc("/", httpHandle)
-
-	log.Printf("Listening on port %v\n", port)
-	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
-
+	err := ListenAndServe(":" + strconv.Itoa(port))
 	if err != nil {
-		log.Println("An error occurred while instantiating the http server:\n", err)
+		log.Println("An error occurred while instantiating the server:\n", err)
 	} else {
-		log.Println("Http server exited.")
+		log.Println("Server exited.")
 	}
 }
 

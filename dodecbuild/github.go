@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
 )
 
 type gitHubReq struct {
@@ -13,11 +12,9 @@ type gitHubReq struct {
 	}
 }
 
-func parseGitHubRequest(w http.ResponseWriter, r *http.Request) (repoUrl string, err error) {
+func parseGitHubRequest(data []byte) (repoUrl string, err error) {
 	req := &gitHubReq{}
-
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(req)
+	err = json.Unmarshal(data, req)
 	if err != nil {
 		return "", err
 	}
