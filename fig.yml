@@ -10,3 +10,17 @@ dodecbuild:
                 DODEC_DOCKER_PASSWORD:
                 DODEC_DOCKER_EMAIL:
         privileged: true
+        links:
+                - dodecregistry
+
+dodecdeploy:
+        build: ./dodecdeploy
+        ports:
+                - "8001:8000"
+        links:
+                - dodecregistry
+
+dodecregistry:
+        build: ./dodecregistry
+        ports:
+                - "8002:8000"
