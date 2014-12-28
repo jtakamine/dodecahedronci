@@ -35,7 +35,7 @@ func httpHandle(w http.ResponseWriter, r *http.Request) {
 		log.Panicf("Error cloning or updating git repo: %v\n", err)
 	}
 
-	err = buildDockerImages(repoDir)
+	err = build(repoDir, "myAwesomeApp", "http://localhost:8080")
 	if err != nil {
 		log.Panicf("Error building Docker images: %v\n", err)
 	}

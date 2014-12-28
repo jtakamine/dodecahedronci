@@ -1,4 +1,4 @@
-#imagenamehint:dodecbuild
+#repoHint:dodecbuild
 
 FROM golang 
 

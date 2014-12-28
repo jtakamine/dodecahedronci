@@ -8,81 +8,104 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 )
 
-func buildDockerImages(repoDir string) (err error) {
-	dFiles, err := getDFiles(repoDir)
+type figFile struct {
+	File   string
+	Config map[interface{}]interface{}
+}
+
+type dockerFile struct {
+	FigService string
+	File       string
+}
+
+func build(repoDir string, app string, dockerRegistryUrl string) (err error) {
+	//Retrieve next version number
+	version := getNextVersion(app)
+
+	//Find all Fig files in repoDir
+	files, err := findFigFiles(repoDir)
 	if err != nil {
 		return err
 	}
 
-	for _, dFile := range dFiles {
-		log.Printf("Building Docker file: %v\n", dFile)
-
-		imgName, err := getImageNameHint(dFile)
+	//Parse Fig files
+	fFiles := []figFile{}
+	for _, file := range files {
+		fFile, err := parseFigFile(file)
 		if err != nil {
 			return err
 		}
 
-		cmd := exec.Command("docker", "build", "-t", config.Get("DODEC_DOCKER_USER")+"/"+imgName, ".")
-		cmd.Dir = filepath.Dir(dFile)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		fFiles = append(fFiles, fFile)
+	}
 
-		err = cmd.Run()
+	//Loop through Fig files
+	for _, fFile := range fFiles {
+		dFiles, err := getDockerFiles(fFile)
 		if err != nil {
 			return err
+		}
+
+		//Loop through Dockerfiles
+		for _, dFile := range dFiles {
+			repo, err := getDockerRepo(dFile)
+			if err != nil {
+				return err
+			}
+
+			tag := getDockerTag(dockerRegistryUrl, config.Get("DODEC_DOCKER_USER"), repo, version)
+
+			buildDockerFile(dFile, tag)
 		}
 	}
 
 	return nil
 }
 
-func getDFiles(dir string) (dFiles []string, err error) {
-	dFiles = []string{}
+func findFigFiles(repoDir string) (fFiles []string, err error) {
+	fFiles = []string{}
 	walk := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.EqualFold(info.Name(), "fig.yml") {
-			files, err := getDFilesFromFigYml(path)
-			if err != nil {
-				return err
-			}
-			dFiles = append(dFiles, files...)
+			fFiles = append(fFiles, path)
 		}
 
 		return nil
 	}
 
-	err = filepath.Walk(dir, walk)
+	err = filepath.Walk(repoDir, walk)
 	if err != nil {
 		return nil, err
 	}
 
-	return dFiles, nil
+	return fFiles, nil
 }
 
-func getDFilesFromFigYml(fyml string) (dFiles []string, err error) {
-	dFiles = []string{}
-
-	data, err := ioutil.ReadFile(fyml)
+func parseFigFile(file string) (fFile figFile, err error) {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return figFile{}, err
 	}
 
-	config := make(map[string]interface{})
+	config := make(map[interface{}]interface{})
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		return nil, err
+		return figFile{}, err
 	}
 
-	for _, v := range config {
+	return figFile{File: file, Config: config}, nil
+}
+
+func getDockerFiles(fFile figFile) (dFiles []dockerFile, err error) {
+	dFiles = []dockerFile{}
+	for k, v := range fFile.Config {
 		if m, ok := v.(map[interface{}]interface{}); ok {
-			buildPath := m["build"]
-			if buildPath != nil {
-				file := path.Join(path.Dir(fyml), buildPath.(string), "Dockerfile")
-				dFiles = append(dFiles, file)
+			if buildPath, ok := m["build"]; ok {
+				file := filepath.Join(filepath.Dir(fFile.File), buildPath.(string), "Dockerfile")
+				dFiles = append(dFiles, dockerFile{FigService: k.(string), File: file})
 			}
 		}
 	}
@@ -90,11 +113,16 @@ func getDFilesFromFigYml(fyml string) (dFiles []string, err error) {
 	return dFiles, nil
 }
 
-func getImageNameHint(dFile string) (hint string, err error) {
-	hint = "builtbydodecci" //default image name hint
-	hintPrefix := "#imagenamehint:"
+func getDockerRepo(dFile dockerFile) (repo string, err error) {
+	dir := filepath.Dir(dFile.File)
+	parts := strings.Split(dir, "/")
 
-	file, err := os.Open(dFile)
+	//default repo name is the name of the directory containing the Dockerfile
+	repo = parts[len(parts)-1]
+
+	repoHint := "#repoHint:"
+
+	file, err := os.Open(dFile.File)
 	if err != nil {
 		return "", nil
 	}
@@ -103,9 +131,9 @@ func getImageNameHint(dFile string) (hint string, err error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, hintPrefix) {
-			hint = strings.TrimPrefix(line, hintPrefix)
-			return hint, nil
+		if strings.HasPrefix(line, repoHint) {
+			repo = strings.TrimPrefix(line, repoHint)
+			return repo, nil
 		}
 	}
 
@@ -114,5 +142,43 @@ func getImageNameHint(dFile string) (hint string, err error) {
 		return "", err
 	}
 
-	return hint, nil
+	return repo, nil
+}
+
+func getDockerTag(dockerRegistryUrl string, dockerUser string, dockerRepo string, version string) (tag string) {
+	registryPrefix := ""
+	if dockerRegistryUrl != "" {
+		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "http://")
+		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "https://")
+		registryPrefix = dockerRegistryUrl + "/"
+	}
+
+	userPrefix := ""
+	if dockerUser != "" {
+		userPrefix = dockerUser + "/"
+	}
+
+	versionSuffix := ""
+	if version != "" {
+		versionSuffix = ":" + version
+	}
+
+	tag = registryPrefix + userPrefix + dockerRepo + versionSuffix
+	return tag
+}
+
+func buildDockerFile(dFile dockerFile, tag string) (err error) {
+	log.Printf("building %v\n", tag)
+
+	cmd := exec.Command("docker", "build", "-t", tag, ".")
+	cmd.Dir = filepath.Dir(dFile.File)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
