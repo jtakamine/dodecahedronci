@@ -1,9 +1,9 @@
-package dodecdeploy
+package main
 
 import (
 	"flag"
-	"github.com/jtakamine/dodecahedronci/dodecdeploy/handlers"
 	"log"
+	"strconv"
 )
 
 func main() {

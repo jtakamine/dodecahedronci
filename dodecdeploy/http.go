@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 type deployReq struct {
-	string App
-	string Version
+	App     string
+	Version string
 }
 
 func ListenAndServe(addr string) (err error) {

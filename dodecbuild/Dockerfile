@@ -1,4 +1,4 @@
-#imagenamehint:dodecci
+#imagenamehint:dodecbuild
 
 FROM golang 
 
