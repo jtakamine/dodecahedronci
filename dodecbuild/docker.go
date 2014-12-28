@@ -83,7 +83,6 @@ func getDFilesFromFigYml(fyml string) (dFiles []string, err error) {
 			if buildPath != nil {
 				file := path.Join(path.Dir(fyml), buildPath.(string), "Dockerfile")
 				dFiles = append(dFiles, file)
-				log.Printf("dFile: %s\n", file)
 			}
 		}
 	}
