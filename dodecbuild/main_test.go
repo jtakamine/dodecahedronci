@@ -18,8 +18,6 @@ func TestMain(t *testing.T) {
 	figUp(t)
 	defer figKillAndRm(t)
 
-	time.Sleep(5 * time.Second)
-
 	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000")
 }
 
@@ -75,6 +73,8 @@ func figUp(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	time.Sleep(5 * time.Second)
 }
 
 func figKillAndRm(t *testing.T) {
