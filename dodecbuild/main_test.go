@@ -23,21 +23,12 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	goInstall(t)
+	testutils.GoInstall(t)
 	process := dodecbuild(t)
 	defer process.Kill()
 
 	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8001")
 	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8001")
-}
-
-func goInstall(t *testing.T) {
-	cmd := testutils.CreateCmd("go", "install")
-
-	err := cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 func dodecbuild(t *testing.T) (p *os.Process) {

@@ -12,17 +12,18 @@ type dodecBuild struct {
 var registry = make(map[string]map[string]dodecBuild)
 
 func addBuild(app string, version string, pkg dodecBuild) (err error) {
-	if registry[app] == nil {
+	if _, ok := registry[app]; !ok {
 		registry[app] = make(map[string]dodecBuild)
 	}
 	registry[app][version] = pkg
+
 	return nil
 }
 
-func getBuild(app string, version string) (pkg dodecBuild, err error) {
+func getBuild(app string, version string) (build dodecBuild, err error) {
 	if m, ok := registry[app]; ok {
-		if pkg, ok := m[version]; ok {
-			return pkg, nil
+		if build, ok := m[version]; ok {
+			return build, nil
 		}
 
 		errStr := "No build found for version" + version + " of application \"" + app + "\""

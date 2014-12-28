@@ -50,6 +50,15 @@ func FigKillAndRm(t *testing.T) {
 	}
 }
 
+func GoInstall(t *testing.T) {
+	cmd := CreateCmd("go", "install")
+
+	err := cmd.Run()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func CreateCmd(name string, arg ...string) *exec.Cmd {
 	cmd := exec.Command(name, arg...)
 
