@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/jtakamine/dodecahedronci/testutils"
 	"net/http"
 	"os"
 	"os/exec"
@@ -14,11 +15,11 @@ func TestMain(t *testing.T) {
 		t.Skip()
 	}
 
-	figBuild(t)
-	figUp(t)
-	defer figKillAndRm(t)
+	testutils.FigBuild(t)
+	testutils.FigUp(t)
+	defer testutils.FigKillAndRm(t)
 
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8001")
 }
 
 func TestMainShort(t *testing.T) {
@@ -26,12 +27,12 @@ func TestMainShort(t *testing.T) {
 	process := dodecbuild(t)
 	defer process.Kill()
 
-	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
-	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8001")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8001")
 }
 
 func goInstall(t *testing.T) {
-	cmd := createCmd("go", "install")
+	cmd := testutils.CreateCmd("go", "install")
 
 	err := cmd.Run()
 	if err != nil {
@@ -42,7 +43,7 @@ func goInstall(t *testing.T) {
 func dodecbuild(t *testing.T) (p *os.Process) {
 	var cmd *exec.Cmd
 	go func() {
-		cmd = createCmd("dodecbuild", "--port", "8000")
+		cmd = testutils.CreateCmd("dodecbuild", "--port", "8001")
 
 		err := cmd.Run()
 		if err != nil {
@@ -53,49 +54,6 @@ func dodecbuild(t *testing.T) (p *os.Process) {
 
 	p = cmd.Process
 	return p
-}
-
-func figBuild(t *testing.T) {
-	cmd := createCmd("fig", "build")
-	cmd.Dir = ".."
-
-	err := cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func figUp(t *testing.T) {
-	cmd := createCmd("fig", "up", "-d")
-	cmd.Dir = ".."
-
-	err := cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-
-	time.Sleep(5 * time.Second)
-}
-
-func figKillAndRm(t *testing.T) {
-	var err error
-	var cmd *exec.Cmd
-
-	cmd = createCmd("fig", "kill")
-	cmd.Dir = ".."
-
-	err = cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-
-	cmd = createCmd("fig", "rm", "--force")
-	cmd.Dir = ".."
-
-	err = cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
@@ -113,13 +71,4 @@ func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
 		t.Error(err)
 	}
 	resp.Body.Close()
-}
-
-func createCmd(name string, arg ...string) *exec.Cmd {
-	cmd := exec.Command(name, arg...)
-
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-
-	return cmd
 }

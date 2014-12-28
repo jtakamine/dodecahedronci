@@ -1,7 +1,12 @@
+dodecregistry:
+        build: ./dodecregistry
+        ports:
+                - "8000:8000"
+
 dodecbuild:
         build: ./dodecbuild
         ports:
-                - "8000:8000"
+                - "8001:8000"
         environment:
                 DODEC_HOME:
                 DODEC_GITHUB_USER:
@@ -16,11 +21,6 @@ dodecbuild:
 dodecdeploy:
         build: ./dodecdeploy
         ports:
-                - "8001:8000"
+                - "8002:8000"
         links:
                 - dodecregistry
-
-dodecregistry:
-        build: ./dodecregistry
-        ports:
-                - "8002:8000"

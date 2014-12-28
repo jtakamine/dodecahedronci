@@ -1,21 +1,34 @@
 package main
 
-type dodecPackage struct {
-	Pkg               []byte
+import (
+	"errors"
+)
+
+type dodecBuild struct {
+	Artifact          string
 	DockerRegistryUrl string
 }
 
-var registry = make(map[string]map[string]dodecPackage)
+var registry = make(map[string]map[string]dodecBuild)
 
-func addPackage(app string, version string, pkg []byte, dockerRegistryUrl string) (err error) {
+func addBuild(app string, version string, pkg dodecBuild) (err error) {
 	if registry[app] == nil {
-		registry[app] = make(map[string]dodecPackage)
+		registry[app] = make(map[string]dodecBuild)
 	}
-	registry[app][version] = dodecPackage{Pkg: pkg, DockerRegistryUrl: dockerRegistryUrl}
+	registry[app][version] = pkg
 	return nil
 }
 
-func getPackage(app string, version string) (pkg []byte, dockerRegistryUrl string, err error) {
-	dPkg := registry[app][version]
-	return dPkg.Pkg, dPkg.DockerRegistryUrl, nil
+func getBuild(app string, version string) (pkg dodecBuild, err error) {
+	if m, ok := registry[app]; ok {
+		if pkg, ok := m[version]; ok {
+			return pkg, nil
+		}
+
+		errStr := "No build found for version" + version + " of application \"" + app + "\""
+		return dodecBuild{}, errors.New(errStr)
+	}
+
+	errStr := "No application found called \"" + app + "\""
+	return dodecBuild{}, errors.New(errStr)
 }

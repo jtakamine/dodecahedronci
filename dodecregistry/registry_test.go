@@ -22,20 +22,22 @@ dodecbuild:
 func TestAddPackage(t *testing.T) {
 	app := "exampleApp"
 	version := "3.2.0.8732"
-	pkg := []byte(fakeFigFile)
+	artifact := fakeFigFile
 	dockerRegistryUrl := ""
 
-	err := addPackage(app, version, pkg, dockerRegistryUrl)
+	build_add := dodecBuild{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
+
+	err := addBuild(app, version, build_add)
 	if err != nil {
 		t.Error(err)
 
 	}
 
-	_pkg, _dockerRegistryUrl, err := getPackage(app, version)
+	build_get, err := getBuild(app, version)
 	if err != nil {
 		t.Error(err)
 	}
-	if string(pkg) != string(_pkg) || dockerRegistryUrl != _dockerRegistryUrl {
+	if build_add != build_get {
 		t.Fail()
 	}
 }
