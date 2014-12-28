@@ -24,31 +24,57 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	var err error
-	var cmd *exec.Cmd
+	goInstall(t)
+	process := dodecbuild(t)
+	defer process.Kill()
 
-	cmd = createCmd("go", "install")
+	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
+}
 
-	err = cmd.Run()
+func goInstall(t *testing.T) {
+	cmd := createCmd("go", "install")
+
+	err := cmd.Run()
 	if err != nil {
 		t.Error(err)
 	}
+}
 
-	var dodecbuildCmd *exec.Cmd
+func dodecbuild(t *testing.T) (p *os.Process) {
+	var cmd *exec.Cmd
 	go func() {
-		dodecbuildCmd = createCmd("dodecbuild", "--port", "8000")
+		cmd = createCmd("dodecbuild", "--port", "8000")
 
-		err = dodecbuildCmd.Run()
+		err := cmd.Run()
 		if err != nil {
 			t.Error(err)
 		}
 	}()
 	time.Sleep(500 * time.Millisecond)
 
-	defer dodecbuildCmd.Process.Kill()
+	p = cmd.Process
+	return p
+}
 
-	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
-	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
+func figBuild(t *testing.T) {
+	cmd := createCmd("fig", "build")
+	cmd.Dir = ".."
+
+	err := cmd.Run()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func figUp(t *testing.T) {
+	cmd := createCmd("fig", "up", "-d")
+	cmd.Dir = ".."
+
+	err := cmd.Run()
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func figKillAndRm(t *testing.T) {
@@ -67,26 +93,6 @@ func figKillAndRm(t *testing.T) {
 	cmd.Dir = ".."
 
 	err = cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func figBuild(t *testing.T) {
-	cmd := createCmd("fig", "build")
-	cmd.Dir = ".."
-
-	err := cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func figUp(t *testing.T) {
-	cmd := createCmd("fig", "up", "-d")
-	cmd.Dir = ".."
-
-	err := cmd.Run()
 	if err != nil {
 		t.Error(err)
 	}
