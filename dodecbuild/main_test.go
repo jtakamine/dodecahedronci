@@ -20,7 +20,7 @@ func TestMain(t *testing.T) {
 
 	time.Sleep(5 * time.Second)
 
-	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000")
 }
 
 func TestMainShort(t *testing.T) {
@@ -48,6 +48,7 @@ func TestMainShort(t *testing.T) {
 	defer dodecbuildCmd.Process.Kill()
 
 	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000")
 }
 
 func figKillAndRm(t *testing.T) {
