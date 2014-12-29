@@ -1,15 +1,11 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/testutils"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 	"testing"
 	"time"
 )
@@ -51,60 +47,21 @@ func dodecregistry(t *testing.T) (p *os.Process) {
 }
 
 func testPostAndGetBuild(app string, version string, artifact string, dockerRegistryUrl string, targetUrl string, t *testing.T) {
-	testPostBuild(app, version, artifact, dockerRegistryUrl, targetUrl, t)
-	build := testGetBuild(app, version, targetUrl, t)
+	var err error
 
-	if build.DockerRegistryUrl != dockerRegistryUrl || build.Artifact != artifact {
+	build_post := api.Build{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
+	err = api.PostBuild(app, version, build_post, targetUrl)
+	if err != nil {
+		t.Error(err)
+	}
+
+	build_get, err := api.GetBuild(app, version, targetUrl)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if build_post != build_get {
 		log.Printf("Failed: The retrieved build does not match the build that was posted.\n")
 		t.Fail()
 	}
-}
-
-func testPostBuild(app string, version string, artifact string, dockerRegistryUrl string, targetUrl string, t *testing.T) {
-	var err error
-
-	reqObj := postBuildReq{App: app, Version: version, Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
-	reqData, err := json.Marshal(reqObj)
-	if err != nil {
-		t.Error(err)
-	}
-
-	req, err := http.NewRequest("POST", targetUrl, strings.NewReader(string(reqData)))
-	if err != nil {
-		t.Error(err)
-	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		t.Error(err)
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	log.Printf("%v", string(respBody))
-}
-
-func testGetBuild(app string, version string, targetUrl string, t *testing.T) (build *dodecBuild) {
-	vals := url.Values{"app": {app}, "version": {version}}
-	url := targetUrl + "?" + vals.Encode()
-
-	resp, err := http.Get(url)
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	log.Printf("get build response: %v\n", string(respBody))
-
-	build = &dodecBuild{}
-	err = json.Unmarshal(respBody, build)
-	if err != nil {
-		t.Error(err)
-	}
-
-	return build
 }

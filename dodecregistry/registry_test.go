@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"testing"
 )
 
@@ -25,7 +26,7 @@ func TestAddPackage(t *testing.T) {
 	artifact := fakeFigFile
 	dockerRegistryUrl := ""
 
-	build_add := dodecBuild{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
+	build_add := api.Build{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
 
 	err := addBuild(app, version, build_add)
 	if err != nil {

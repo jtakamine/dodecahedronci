@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"github.com/jtakamine/dodecahedronci/config"
+	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -52,14 +54,29 @@ func build(repoDir string, app string, dockerRegistryUrl string) (err error) {
 
 		//Loop through Dockerfiles
 		for _, dFile := range dFiles {
-			repo, err := getDockerRepo(dFile)
+			repo, err := getDockerRepo(dFile.File)
 			if err != nil {
 				return err
 			}
 
 			tag := getDockerTag(dockerRegistryUrl, config.Get("DODEC_DOCKER_USER"), repo, version)
 
-			buildDockerFile(dFile, tag)
+			//Build Dockerfile
+			err = buildDockerFile(dFile.File, tag)
+			if err != nil {
+				return err
+			}
+
+			//
+			err = updateFigFileWithDockerImage(fFile, dFile, tag)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = postBuildToDodecRegistry(app, version, fFile, dockerRegistryUrl)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -113,8 +130,8 @@ func getDockerFiles(fFile figFile) (dFiles []dockerFile, err error) {
 	return dFiles, nil
 }
 
-func getDockerRepo(dFile dockerFile) (repo string, err error) {
-	dir := filepath.Dir(dFile.File)
+func getDockerRepo(dFile string) (repo string, err error) {
+	dir := filepath.Dir(dFile)
 	parts := strings.Split(dir, "/")
 
 	//default repo name is the name of the directory containing the Dockerfile
@@ -122,7 +139,7 @@ func getDockerRepo(dFile dockerFile) (repo string, err error) {
 
 	repoHint := "#repoHint:"
 
-	file, err := os.Open(dFile.File)
+	file, err := os.Open(dFile)
 	if err != nil {
 		return "", nil
 	}
@@ -167,15 +184,46 @@ func getDockerTag(dockerRegistryUrl string, dockerUser string, dockerRepo string
 	return tag
 }
 
-func buildDockerFile(dFile dockerFile, tag string) (err error) {
+func buildDockerFile(dFile string, tag string) (err error) {
 	log.Printf("building %v\n", tag)
 
 	cmd := exec.Command("docker", "build", "-t", tag, ".")
-	cmd.Dir = filepath.Dir(dFile.File)
+	cmd.Dir = filepath.Dir(dFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateFigFileWithDockerImage(fFile figFile, dFile dockerFile, tag string) (err error) {
+	serviceConfig := fFile.Config[dFile.FigService]
+
+	if m, ok := serviceConfig.(map[interface{}]interface{}); ok {
+		delete(m, "build")
+		m["image"] = tag
+		fFile.Config[dFile.FigService] = m
+
+		return nil
+	}
+
+	return errors.New("Could not interpret Fig file.")
+}
+
+func postBuildToDodecRegistry(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
+	data, err := yaml.Marshal(fFile.Config)
+	if err != nil {
+		return err
+	}
+	artifact := string(data)
+
+	build := api.Build{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
+
+	err = api.PostBuild(app, version, build, "http://registry:8000/")
 	if err != nil {
 		return err
 	}

@@ -3,17 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
-
-type postBuildReq struct {
-	App               string
-	Version           string
-	Artifact          string
-	DockerRegistryUrl string
-}
 
 func ListenAndServe(addr string) (err error) {
 	http.HandleFunc("/", httpHandle)
@@ -65,13 +59,18 @@ func httpHandlePost(w http.ResponseWriter, r *http.Request) {
 		log.Panicf("Error reading request body: %v\n", err)
 	}
 
-	req := &postBuildReq{}
+	req := &struct {
+		App               string
+		Version           string
+		Artifact          string
+		DockerRegistryUrl string
+	}{}
 	err = json.Unmarshal(data, req)
 	if err != nil {
 		log.Panicf("Error parsing json request: %v\n", err)
 	}
 
-	err = addBuild(req.App, req.Version, dodecBuild{Artifact: req.Artifact, DockerRegistryUrl: req.DockerRegistryUrl})
+	err = addBuild(req.App, req.Version, api.Build{Artifact: req.Artifact, DockerRegistryUrl: req.DockerRegistryUrl})
 	if err != nil {
 		log.Panicf("Error adding package: %v\n", err)
 	}
