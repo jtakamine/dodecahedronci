@@ -23,9 +23,14 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	testutils.GoInstall(t)
-	process := dodecbuild(t)
-	defer process.Kill()
+	testutils.GoInstall(".", t)
+	testutils.GoInstall("../dodecregistry", t)
+
+	buildProcess := dodecbuild(t)
+	defer buildProcess.Kill()
+
+	registryProcess := dodecregistry(t)
+	defer registryProcess.Kill()
 
 	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8001")
 	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8001")
@@ -35,6 +40,22 @@ func dodecbuild(t *testing.T) (p *os.Process) {
 	var cmd *exec.Cmd
 	go func() {
 		cmd = testutils.CreateCmd("dodecbuild", "--port", "8001")
+
+		err := cmd.Run()
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+	time.Sleep(500 * time.Millisecond)
+
+	p = cmd.Process
+	return p
+}
+
+func dodecregistry(t *testing.T) (p *os.Process) {
+	var cmd *exec.Cmd
+	go func() {
+		cmd = testutils.CreateCmd("dodecregistry", "--port", "8000")
 
 		err := cmd.Run()
 		if err != nil {

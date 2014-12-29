@@ -23,7 +23,7 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	testutils.GoInstall(t)
+	testutils.GoInstall(".", t)
 	process := dodecregistry(t)
 	defer process.Kill()
 

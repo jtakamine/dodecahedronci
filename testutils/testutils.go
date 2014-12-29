@@ -50,8 +50,9 @@ func FigKillAndRm(t *testing.T) {
 	}
 }
 
-func GoInstall(t *testing.T) {
+func GoInstall(dir string, t *testing.T) {
 	cmd := CreateCmd("go", "install")
+	cmd.Dir = dir
 
 	err := cmd.Run()
 	if err != nil {

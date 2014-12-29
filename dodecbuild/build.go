@@ -223,7 +223,7 @@ func postBuildToDodecRegistry(app string, version string, fFile figFile, dockerR
 
 	build := api.Build{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
 
-	err = api.PostBuild(app, version, build, "http://registry:8000/")
+	err = api.PostBuild(app, version, build, "http://dodecregistry:8000/")
 	if err != nil {
 		return err
 	}
