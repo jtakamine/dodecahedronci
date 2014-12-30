@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/jtakamine/dodecahedronci/utils/configutil"
+	"github.com/jtakamine/dodecahedronci/configutil"
 	"log"
 	"strconv"
 )

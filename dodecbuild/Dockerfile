@@ -26,7 +26,7 @@ VOLUME /var/lib/docker
 RUN go get gopkg.in/yaml.v2
 
 # Get Internal Go packages
-RUN go get github.com/jtakamine/dodecahedronci/config
+RUN go get github.com/jtakamine/dodecahedronci/configutil
 RUN go get github.com/jtakamine/dodecahedronci/dodecregistry/api
 
 # Get source and install application

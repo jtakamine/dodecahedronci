@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"errors"
+	"github.com/jtakamine/dodecahedronci/configutil"
 	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
-	"github.com/jtakamine/dodecahedronci/utils/configutil"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"

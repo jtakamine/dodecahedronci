@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
-	"github.com/jtakamine/dodecahedronci/utils/testutil"
+	"github.com/jtakamine/dodecahedronci/testutil"
 	"log"
 	"testing"
 	"time"

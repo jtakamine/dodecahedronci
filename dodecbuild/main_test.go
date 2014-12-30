@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/jtakamine/dodecahedronci/utils/testutil"
+	"github.com/jtakamine/dodecahedronci/testutil"
 	"net/http"
 	"testing"
 	"time"
