@@ -21,9 +21,13 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	parseArgs = func() (port int) { return 8001 }
+	parseArgs = func() (port int) {
+		return 8001
+	}
 
-	postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) { return nil }
+	postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
+		return nil
+	}
 
 	go main()
 	time.Sleep(500 * time.Millisecond)

@@ -21,7 +21,9 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	parseArgs = func() (port int) { return 8000 }
+	parseArgs = func() (port int) {
+		return 8000
+	}
 
 	go main()
 	time.Sleep(500 * time.Millisecond)
