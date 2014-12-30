@@ -1,5 +1,3 @@
-#repoHint:dodecbuild
-
 FROM golang 
 
 # Adapted from https://github.com/tehranian/dind-jenkins-slave/blob/master/Dockerfile
@@ -34,7 +32,7 @@ ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 WORKDIR /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 RUN go install
 
+EXPOSE 8000
+
 # Run application
 CMD /usr/local/bin/wrapdocker & dodecbuild -port 8000
-
-EXPOSE 8000

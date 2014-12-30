@@ -12,5 +12,7 @@ ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecdeploy
 WORKDIR /go/src/github.com/jtakamine/dodecahedronci/dodecdeploy
 RUN go install
 
+EXPOSE 8000
+
 # Run application
-CMD dodecbuild -port 8000
+CMD dodecdeploy -port 8000
