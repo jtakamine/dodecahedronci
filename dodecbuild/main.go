@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/jtakamine/dodecahedronci/config"
+	"github.com/jtakamine/dodecahedronci/utils/configutil"
 	"log"
 	"strconv"
 )
@@ -39,7 +39,7 @@ func validateConfig() bool {
 		"DODEC_DOCKER_EMAIL",
 	}
 
-	err := config.Require(requiredConfig)
+	err := configutil.Require(requiredConfig)
 	if err != nil {
 		log.Println(err)
 		return false

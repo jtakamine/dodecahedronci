@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/jtakamine/dodecahedronci/testutils"
+	"github.com/jtakamine/dodecahedronci/utils/testutil"
 	"net/http"
 	"testing"
 	"time"
@@ -13,16 +13,16 @@ func TestMain(t *testing.T) {
 		t.Skip()
 	}
 
-	testutils.FigBuild(t)
-	testutils.FigUp(t)
-	defer testutils.FigKillAndRm(t)
+	testutil.FigBuild(t)
+	testutil.FigUp(t)
+	defer testutil.FigKillAndRm(t)
 
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8001")
+	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8002")
 }
 
 func TestMainShort(t *testing.T) {
 	parseArgs = func() (port int) {
-		return 8001
+		return 8002
 	}
 
 	postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
@@ -32,8 +32,8 @@ func TestMainShort(t *testing.T) {
 	go main()
 	time.Sleep(500 * time.Millisecond)
 
-	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8001")
-	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8001")
+	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8002")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8002")
 }
 
 func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {

@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"errors"
-	"github.com/jtakamine/dodecahedronci/config"
 	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
+	"github.com/jtakamine/dodecahedronci/utils/configutil"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -59,7 +59,7 @@ func build(repoDir string, app string, dockerRegistryUrl string) (err error) {
 				return err
 			}
 
-			tag := getDockerTag(dockerRegistryUrl, config.Get("DODEC_DOCKER_USER"), repo, version)
+			tag := getDockerTag(dockerRegistryUrl, configutil.Get("DODEC_DOCKER_USER"), repo, version)
 
 			//Build Dockerfile
 			err = buildDockerFile(dFile.File, tag)
@@ -67,13 +67,14 @@ func build(repoDir string, app string, dockerRegistryUrl string) (err error) {
 				return err
 			}
 
-			//
+			//In Fig file, replace "build" node with appropriate "image" node
 			err = updateFigFileWithDockerImage(fFile, dFile, tag)
 			if err != nil {
 				return err
 			}
 		}
 
+		//Post the build to the dodec registry
 		err = postBuildToDodecRegistry(app, version, fFile, dockerRegistryUrl)
 		if err != nil {
 			return err

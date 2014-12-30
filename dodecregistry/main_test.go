@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
-	"github.com/jtakamine/dodecahedronci/testutils"
+	"github.com/jtakamine/dodecahedronci/utils/testutil"
 	"log"
 	"testing"
 	"time"
@@ -13,22 +13,22 @@ func TestMain(t *testing.T) {
 		t.Skip()
 	}
 
-	testutils.FigBuild(t)
-	testutils.FigUp(t)
-	defer testutils.FigKillAndRm(t)
+	testutil.FigBuild(t)
+	testutil.FigUp(t)
+	defer testutil.FigKillAndRm(t)
 
-	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "", "http://localhost:8000", t)
+	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "", "http://localhost:8001", t)
 }
 
 func TestMainShort(t *testing.T) {
 	parseArgs = func() (port int) {
-		return 8000
+		return 8001
 	}
 
 	go main()
 	time.Sleep(500 * time.Millisecond)
 
-	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "asdf", "http://localhost:8000", t)
+	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "asdf", "http://localhost:8001", t)
 }
 
 func testPostAndGetBuild(app string, version string, artifact string, dockerRegistryUrl string, targetUrl string, t *testing.T) {

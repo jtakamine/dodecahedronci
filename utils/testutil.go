@@ -1,4 +1,4 @@
-package testutils
+package testutil
 
 import (
 	"os"
@@ -45,16 +45,6 @@ func FigKillAndRm(t *testing.T) {
 	cmd.Dir = ".."
 
 	err = cmd.Run()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func GoInstall(dir string, t *testing.T) {
-	cmd := CreateCmd("go", "install")
-	cmd.Dir = dir
-
-	err := cmd.Run()
 	if err != nil {
 		t.Error(err)
 	}

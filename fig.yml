@@ -1,12 +1,17 @@
+dodecpubsub:
+        image: redis
+        ports:
+                - "8000:6379"
+
 dodecregistry:
         build: ./dodecregistry
         ports:
-                - "8000:8000"
+                - "8001:8000"
 
 dodecbuild:
         build: ./dodecbuild
         ports:
-                - "8001:8000"
+                - "8002:8000"
         environment:
                 DODEC_HOME:
                 DODEC_GITHUB_USER:
@@ -17,10 +22,12 @@ dodecbuild:
         privileged: true
         links:
                 - dodecregistry
+                - dodecpubsub
 
 dodecdeploy:
         build: ./dodecdeploy
         ports:
-                - "8002:8000"
+                - "8003:8000"
         links:
                 - dodecregistry
+                - dodecpubsub
