@@ -4,8 +4,6 @@ import (
 	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/testutils"
 	"log"
-	"os"
-	"os/exec"
 	"testing"
 	"time"
 )
@@ -23,27 +21,12 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	testutils.GoInstall(".", t)
-	process := dodecregistry(t)
-	defer process.Kill()
+	parseArgs = func() (port int) { return 8000 }
 
-	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "asdf", "http://localhost:8000", t)
-}
-
-func dodecregistry(t *testing.T) (p *os.Process) {
-	var cmd *exec.Cmd
-	go func() {
-		cmd = testutils.CreateCmd("dodecregistry", "--port", "8000")
-
-		err := cmd.Run()
-		if err != nil {
-			t.Error(err)
-		}
-	}()
+	go main()
 	time.Sleep(500 * time.Millisecond)
 
-	p = cmd.Process
-	return p
+	testPostAndGetBuild("myapp", "1.2.0.345", "app:\n  image: scratch", "asdf", "http://localhost:8000", t)
 }
 
 func testPostAndGetBuild(app string, version string, artifact string, dockerRegistryUrl string, targetUrl string, t *testing.T) {

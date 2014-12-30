@@ -18,7 +18,7 @@ func main() {
 	}
 }
 
-func parseArgs() (port int) {
+var parseArgs = func() (port int) {
 	portPtr := flag.Int("port", 80, "The port on which this server will listen")
 	flag.Parse()
 	return *portPtr

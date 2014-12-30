@@ -214,7 +214,7 @@ func updateFigFileWithDockerImage(fFile figFile, dFile dockerFile, tag string) (
 	return errors.New("Could not interpret Fig file.")
 }
 
-func postBuildToDodecRegistry(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
+var postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
 	data, err := yaml.Marshal(fFile.Config)
 	if err != nil {
 		return err

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"github.com/jtakamine/dodecahedronci/testutils"
 	"net/http"
-	"os"
-	"os/exec"
 	"testing"
 	"time"
 )
@@ -23,49 +21,17 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
-	testutils.GoInstall(".", t)
-	testutils.GoInstall("../dodecregistry", t)
+	parseArgs = func() (port int) {
+		return 8001
+	}
 
-	buildProcess := dodecbuild(t)
-	defer buildProcess.Kill()
+	postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) { return nil }
 
-	registryProcess := dodecregistry(t)
-	defer registryProcess.Kill()
+	go main()
+	time.Sleep(500 * time.Millisecond)
 
 	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8001")
 	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8001")
-}
-
-func dodecbuild(t *testing.T) (p *os.Process) {
-	var cmd *exec.Cmd
-	go func() {
-		cmd = testutils.CreateCmd("dodecbuild", "--port", "8001")
-
-		err := cmd.Run()
-		if err != nil {
-			t.Error(err)
-		}
-	}()
-	time.Sleep(500 * time.Millisecond)
-
-	p = cmd.Process
-	return p
-}
-
-func dodecregistry(t *testing.T) (p *os.Process) {
-	var cmd *exec.Cmd
-	go func() {
-		cmd = testutils.CreateCmd("dodecregistry", "--port", "8000")
-
-		err := cmd.Run()
-		if err != nil {
-			t.Error(err)
-		}
-	}()
-	time.Sleep(500 * time.Millisecond)
-
-	p = cmd.Process
-	return p
 }
 
 func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
