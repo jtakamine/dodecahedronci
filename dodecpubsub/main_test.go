@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/jtakamine/dodecahedronci/dodecpubsub/api"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"strconv"
