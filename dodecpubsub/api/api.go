@@ -3,25 +3,23 @@ package api
 import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"time"
 )
 
-func Subscribe(topic string) (err error) {
-	subC, err := redis.Dial("tcp", "localhost:8000")
+func Subscribe(channel string, address string) (subChan <-chan string, err error) {
+	subConn, err := redis.Dial("tcp", "localhost:8000")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	//the below is just testing code
-	//TODO: return a channel through which messages will be passed back
-	subPsc := redis.PubSubConn{subC}
-	subPsc.Subscribe("example")
+	subPsc := redis.PubSubConn{subConn}
+	subPsc.Subscribe(channel)
 
+	subChan_bi := make(chan string)
 	go func() {
 		for {
 			switch v := subPsc.Receive().(type) {
 			case redis.Message:
-				fmt.Printf("%s: message: %s\n", v.Channel, v.Data)
+				subChan_bi <- string(v.Data)
 			case redis.Subscription:
 				fmt.Printf("%s: %s %d\n", v.Channel, v.Kind, v.Count)
 			case error:
@@ -30,14 +28,17 @@ func Subscribe(topic string) (err error) {
 		}
 	}()
 
-	time.Sleep(1 * time.Second)
+	subChan = subChan_bi
+	return subChan, nil
+}
 
-	pubC, err := redis.Dial("tcp", "localhost:8000")
+func Publish(msg string, channel string, address string) (err error) {
+	pubC, err := redis.Dial("tcp", address)
 	if err != nil {
 		return err
 	}
 
-	err = pubC.Send("PUBLISH", "example", "hi redis!")
+	err = pubC.Send("PUBLISH", channel, msg)
 	if err != nil {
 		return err
 	}
@@ -46,8 +47,6 @@ func Subscribe(topic string) (err error) {
 	if err != nil {
 		return err
 	}
-
-	time.Sleep(10 * time.Second)
 
 	return nil
 }
