@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jtakamine/dodecahedronci/dodecpubsub/api"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"strconv"
@@ -19,6 +20,8 @@ func TestMain(t *testing.T) {
 func testSubscribeAndPublish(channel string, address string, t *testing.T) {
 	var err error
 
+	api.Publish("first message", channel, address)
+
 	subChan, err := api.Subscribe(channel, address)
 	if err != nil {
 		t.Error(err)
@@ -28,6 +31,7 @@ func testSubscribeAndPublish(channel string, address string, t *testing.T) {
 
 	for i := 1; i <= iterations; i++ {
 		msg := createMessage(i)
+
 		err = api.Publish(msg, channel, address)
 		if err != nil {
 			t.Error(err)
@@ -43,8 +47,16 @@ func testSubscribeAndPublish(channel string, address string, t *testing.T) {
 				t.Error("Subscription channel closed unexpectedly")
 			}
 			msgs[msg] = struct{}{}
+			fmt.Printf("msg: %v\n", msg)
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			t.Error("Receive timed out after " + strconv.Itoa(timeout) + "ms")
+		}
+	}
+
+	for i := 1; i <= iterations; i++ {
+		msg := createMessage(i)
+		if _, ok := msgs[msg]; !ok {
+			t.Error("Never received: \"" + msg + "\"")
 		}
 	}
 

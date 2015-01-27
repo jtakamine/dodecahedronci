@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	dodecpubsub_API "github.com/jtakamine/dodecahedronci/dodecpubsub/api"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -17,6 +20,7 @@ func TestMain(t *testing.T) {
 	testutil.FigUp(t)
 	defer testutil.FigKillAndRm(t)
 
+	testSubscribeLogs(t, "localhost:8000")
 	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8002")
 }
 
@@ -25,7 +29,13 @@ func TestMainShort(t *testing.T) {
 		return 8002
 	}
 
-	postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
+	saveBuild = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
+		fmt.Printf("Saved build. Fig file:%v\n", fFile.Config)
+		return nil
+	}
+
+	logPub = func(msg string, lType logType) (err error) {
+		fmt.Printf("Published log (level %v): %s\n", lType, msg)
 		return nil
 	}
 
@@ -51,4 +61,17 @@ func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
 		t.Error(err)
 	}
 	resp.Body.Close()
+}
+
+func testSubscribeLogs(t *testing.T, address string) {
+	subChan, err := dodecpubsub_API.Subscribe(strconv.Itoa(int(verboseLogType)), address)
+	if err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		for msg := range subChan {
+			fmt.Println("Received message: " + msg)
+		}
+	}()
 }

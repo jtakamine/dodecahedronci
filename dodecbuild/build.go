@@ -4,14 +4,22 @@ import (
 	"bufio"
 	"errors"
 	"github.com/jtakamine/dodecahedronci/configutil"
-	"github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+)
+
+type logType int
+
+const (
+	verboseLogType logType = iota
+	infoLogType
+	warnLogType
+	errorLogType
 )
 
 type figFile struct {
@@ -25,61 +33,83 @@ type dockerFile struct {
 }
 
 func build(repoDir string, app string, dockerRegistryUrl string) (err error) {
-	//Retrieve next version number
+	logPub("Retrieving next version number...", infoLogType)
 	version := getNextVersion(app)
+	logPub("Retrieved version number: "+version, infoLogType)
 
-	//Find all Fig files in repoDir
+	logPub("Searching for fig files in "+repoDir+"...", infoLogType)
 	files, err := findFigFiles(repoDir)
 	if err != nil {
+		logPub("Error encountered while searching for fig files: "+err.Error(), errorLogType)
 		return err
 	}
+	logPub("Found "+strconv.Itoa(len(files))+" fig file(s).", infoLogType)
 
-	//Parse Fig files
+	logPub("Parsing "+strconv.Itoa(len(files))+" fig file(s)...", infoLogType)
 	fFiles := []figFile{}
-	for _, file := range files {
+	for i, file := range files {
+		logPub("Parsing fig file #"+strconv.Itoa(i+1)+": "+file, verboseLogType)
 		fFile, err := parseFigFile(file)
 		if err != nil {
+			logPub("Error encountered while parsing fig file: "+err.Error(), errorLogType)
 			return err
 		}
 
 		fFiles = append(fFiles, fFile)
 	}
+	logPub("Parsed "+strconv.Itoa(len(fFiles))+" fig files.", infoLogType)
 
-	//Loop through Fig files
-	for _, fFile := range fFiles {
+	logPub("Looping through "+strconv.Itoa(len(fFiles))+" parsed fig files...", infoLogType)
+	for i, fFile := range fFiles {
+		logPub("Extracting Dockerfile paths from fig file #"+strconv.Itoa(i+1)+"...", verboseLogType)
 		dFiles, err := getDockerFiles(fFile)
 		if err != nil {
+			logPub("Error encountered while extracting Dockerfile paths from fig file: "+err.Error(), errorLogType)
 			return err
 		}
+		logPub("Extracted "+strconv.Itoa(len(dFiles))+" Dockerfile paths.", verboseLogType)
 
-		//Loop through Dockerfiles
-		for _, dFile := range dFiles {
+		logPub("Looping through "+strconv.Itoa(len(dFiles))+" Dockerfiles...", verboseLogType)
+		for j, dFile := range dFiles {
+			logPub("Processing Dockerfile #"+strconv.Itoa(j+1)+"...", verboseLogType)
+			logPub("Retrieving Docker repository name based on Dockerfile path...", verboseLogType)
 			repo, err := getDockerRepo(dFile.File)
 			if err != nil {
+				logPub("Error encountered while retrieving Docker repository name: "+err.Error(), errorLogType)
 				return err
 			}
+			logPub("Retrieved Docker repository name: "+repo, verboseLogType)
 
+			logPub("Generating Docker image tag...", verboseLogType)
 			tag := getDockerTag(dockerRegistryUrl, configutil.Get("DODEC_DOCKER_USER"), repo, version)
+			logPub("Generated Docker image tag: "+tag, verboseLogType)
 
-			//Build Dockerfile
+			logPub("Building Dockerfile "+dFile.File+"...", verboseLogType)
 			err = buildDockerFile(dFile.File, tag)
 			if err != nil {
+				logPub("Error encountered while building Dockerfile: "+err.Error(), errorLogType)
 				return err
 			}
+			logPub("Built Dockerfile.", verboseLogType)
 
-			//In Fig file, replace "build" node with appropriate "image" node
+			logPub("Replacing \"build\" node with appropriate \"image\" node in Fig file...", verboseLogType)
 			err = updateFigFileWithDockerImage(fFile, dFile, tag)
 			if err != nil {
+				logPub("Error encountered while replacing \"build\" node with \"image\" node: "+err.Error(), errorLogType)
 				return err
 			}
+			logPub("Replaced \"build\" node with \"image\" node in Fig file.", verboseLogType)
 		}
 
-		//Post the build to the dodec registry
-		err = postBuildToDodecRegistry(app, version, fFile, dockerRegistryUrl)
+		logPub("Posting the build to the Dodec Registry...", verboseLogType)
+		err = saveBuild(app, version, fFile, dockerRegistryUrl)
 		if err != nil {
+			logPub("Error encountered while posting the build to the Dodec Registry: "+err.Error(), errorLogType)
 			return err
 		}
+		logPub("Posted the build to the Dodec Registry.", verboseLogType)
 	}
+	logPub("Done looping through "+strconv.Itoa(len(fFiles))+" Fig files.", infoLogType)
 
 	return nil
 }
@@ -186,8 +216,6 @@ func getDockerTag(dockerRegistryUrl string, dockerUser string, dockerRepo string
 }
 
 func buildDockerFile(dFile string, tag string) (err error) {
-	log.Printf("building %v\n", tag)
-
 	cmd := exec.Command("docker", "build", "-t", tag, ".")
 	cmd.Dir = filepath.Dir(dFile)
 	cmd.Stdout = os.Stdout
@@ -213,21 +241,4 @@ func updateFigFileWithDockerImage(fFile figFile, dFile dockerFile, tag string) (
 	}
 
 	return errors.New("Could not interpret Fig file.")
-}
-
-var postBuildToDodecRegistry = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
-	data, err := yaml.Marshal(fFile.Config)
-	if err != nil {
-		return err
-	}
-	artifact := string(data)
-
-	build := api.Build{Artifact: artifact, DockerRegistryUrl: dockerRegistryUrl}
-
-	err = api.PostBuild(app, version, build, "http://dodecregistry:8000/")
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

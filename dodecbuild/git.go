@@ -18,7 +18,7 @@ func cloneOrUpdateGitRepo(repoUrl string) (dir string, err error) {
 		cmd = exec.Command("git", "clone", repoUrl, dir)
 	} else if err == nil {
 		log.Printf("Pulling git repo from %v\n", repoUrl)
-		cmd = exec.Command("git", "pull", repoUrl)
+		cmd = exec.Command("git", "pull", "--rebase", repoUrl)
 		cmd.Dir = dir
 	} else {
 		return "", err

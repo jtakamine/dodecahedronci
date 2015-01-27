@@ -6,7 +6,7 @@ import (
 )
 
 func Subscribe(channel string, address string) (subChan <-chan string, err error) {
-	subConn, err := redis.Dial("tcp", "localhost:8000")
+	subConn, err := redis.Dial("tcp", address)
 	if err != nil {
 		return nil, err
 	}
