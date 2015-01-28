@@ -31,11 +31,8 @@ func Subscribe(channel string, address string) (subChan <-chan Message, err erro
 				return
 			}
 
-			fmt.Printf("Received: %s.\n", data[:n])
-
 			msg := Message{}
-
-			json.Unmarshal(data, &msg)
+			json.Unmarshal(data[:n], &msg)
 
 			subChan_bi <- msg
 		}

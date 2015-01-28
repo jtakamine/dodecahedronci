@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	dodecpubsub_API "github.com/jtakamine/dodecahedronci/dodecpubsub/api"
 	dodecregistry_API "github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"gopkg.in/yaml.v2"
 	"strconv"
-	"time"
 )
 
 var saveBuild = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
@@ -27,22 +25,8 @@ var saveBuild = func(app string, version string, fFile figFile, dockerRegistryUr
 }
 
 var log = func(msg string, lType logType) (err error) {
-	msgObj := &struct {
-		Msg  string
-		Time time.Time
-	}{
-		msg,
-		time.Now(),
-	}
-
-	msgData, err := json.Marshal(msgObj)
-	if err != nil {
-		panic(err.Error())
-	}
-	msgJson := string(msgData)
-
 	for i := 0; i <= int(lType); i++ {
-		err = dodecpubsub_API.Publish(msgJson, strconv.Itoa(i), "http://dodecpubsub:8000/publish")
+		err = dodecpubsub_API.Publish(msg, strconv.Itoa(i), "http://dodecpubsub:8000/publish")
 		if err != nil {
 			panic(err.Error())
 		}

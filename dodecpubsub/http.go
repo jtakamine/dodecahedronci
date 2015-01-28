@@ -45,8 +45,6 @@ func wsHandleSub(conn *websocket.Conn) {
 		log.Panic(err)
 	}
 
-	for {
-	}
 	for msg := range ch {
 		_, err := conn.Write([]byte(msg))
 		if err != nil {
