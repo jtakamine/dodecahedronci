@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/jtakamine/dodecahedronci/configutil"
-	"log"
 	"strconv"
 )
 
 func main() {
 	port := parseArgs()
-	log.Printf("Listening on port %v\n", port)
+	fmt.Printf("Listening on port %v\n", port)
 
 	if !validateConfig() {
 		return
@@ -17,9 +17,9 @@ func main() {
 
 	err := ListenAndServe(":" + strconv.Itoa(port))
 	if err != nil {
-		log.Println("An error occurred while instantiating the service:\n", err)
+		fmt.Println("An error occurred while instantiating the service:\n" + err.Error())
 	} else {
-		log.Println("Server exited.")
+		fmt.Println("Server exited.")
 	}
 }
 
@@ -39,7 +39,7 @@ func validateConfig() bool {
 
 	err := configutil.Require(requiredConfig)
 	if err != nil {
-		log.Println(err)
+		fmt.Println("An error occurred:\n" + err.Error())
 		return false
 	}
 

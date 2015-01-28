@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/jtakamine/dodecahedronci/configutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,10 +13,10 @@ func cloneOrUpdateGitRepo(repoUrl string) (dir string, err error) {
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
-		log.Printf("Cloning git repo from %v\n", repoUrl)
+		log("Cloning git repo from "+repoUrl+"...", infoLogType)
 		cmd = exec.Command("git", "clone", repoUrl, dir)
 	} else if err == nil {
-		log.Printf("Pulling git repo from %v\n", repoUrl)
+		log("Pulling git repo from "+repoUrl+"...", infoLogType)
 		cmd = exec.Command("git", "pull", "--rebase", repoUrl)
 		cmd.Dir = dir
 	} else {
@@ -31,6 +30,8 @@ func cloneOrUpdateGitRepo(repoUrl string) (dir string, err error) {
 	if err != nil {
 		return "", err
 	}
+
+	log("Done cloning/pulling git repo.", infoLogType)
 
 	return dir, nil
 }

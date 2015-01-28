@@ -25,6 +25,10 @@ func TestMain(t *testing.T) {
 }
 
 func TestMainShort(t *testing.T) {
+	if !testing.Short() {
+		t.Skip()
+	}
+
 	parseArgs = func() (port int) {
 		return 8002
 	}
@@ -34,7 +38,7 @@ func TestMainShort(t *testing.T) {
 		return nil
 	}
 
-	logPub = func(msg string, lType logType) (err error) {
+	log = func(msg string, lType logType) (err error) {
 		fmt.Printf("Published log (level %v): %s\n", lType, msg)
 		return nil
 	}

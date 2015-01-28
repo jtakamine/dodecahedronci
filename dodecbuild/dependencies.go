@@ -26,7 +26,7 @@ var saveBuild = func(app string, version string, fFile figFile, dockerRegistryUr
 	return nil
 }
 
-var logPub = func(msg string, lType logType) (err error) {
+var log = func(msg string, lType logType) (err error) {
 	msgObj := &struct {
 		Msg       string
 		TimeStamp time.Time
