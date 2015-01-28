@@ -20,7 +20,7 @@ func TestMain(t *testing.T) {
 	testutil.FigUp(t)
 	defer testutil.FigKillAndRm(t)
 
-	testSubscribeLogs(t, "localhost:8000")
+	testSubscribeLogs(t, "ws://localhost:8000/subscribe")
 	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8002")
 }
 
@@ -63,6 +63,7 @@ func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
 	resp, err = client.Do(req)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	resp.Body.Close()
 }
@@ -75,7 +76,7 @@ func testSubscribeLogs(t *testing.T, address string) {
 
 	go func() {
 		for msg := range subChan {
-			fmt.Println("Received message: " + msg)
+			fmt.Println("Received message: " + msg.Text)
 		}
 	}()
 }

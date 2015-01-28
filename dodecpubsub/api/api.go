@@ -1,30 +1,43 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
+	"golang.org/x/net/websocket"
+	"net/http"
+	"strings"
+	"time"
 )
 
-func Subscribe(channel string, address string) (subChan <-chan string, err error) {
-	subConn, err := redis.Dial("tcp", address)
+func Subscribe(channel string, address string) (subChan <-chan Message, err error) {
+	address = strings.TrimSuffix(address, "/") + "/"
+	origin := "http://localhost/"
+	url := address + channel
+
+	fmt.Println("Url: " + url)
+	conn, err := websocket.Dial(url, "", origin)
 	if err != nil {
 		return nil, err
 	}
 
-	subPsc := redis.PubSubConn{subConn}
-	subPsc.Subscribe(channel)
+	subChan_bi := make(chan Message)
 
-	subChan_bi := make(chan string)
 	go func() {
+		defer conn.Close()
 		for {
-			switch v := subPsc.Receive().(type) {
-			case redis.Message:
-				subChan_bi <- string(v.Data)
-			case redis.Subscription:
-				fmt.Printf("%s: %s %d\n", v.Channel, v.Kind, v.Count)
-			case error:
+			data := make([]byte, 512)
+			n, err := conn.Read(data)
+			if err != nil {
 				return
 			}
+
+			fmt.Printf("Received: %s.\n", data[:n])
+
+			msg := Message{}
+
+			json.Unmarshal(data, &msg)
+
+			subChan_bi <- msg
 		}
 	}()
 
@@ -32,18 +45,22 @@ func Subscribe(channel string, address string) (subChan <-chan string, err error
 	return subChan, nil
 }
 
-func Publish(msg string, channel string, address string) (err error) {
-	pubC, err := redis.Dial("tcp", address)
+func Publish(msg string, channel string, url string) (err error) {
+	url = strings.TrimSuffix(url, "/") + "/"
+	url = url + channel
+
+	reqObj := Message{
+		Text: msg,
+		Time: time.Now(),
+	}
+
+	reqData, err := json.Marshal(reqObj)
 	if err != nil {
 		return err
 	}
 
-	err = pubC.Send("PUBLISH", channel, msg)
-	if err != nil {
-		return err
-	}
-
-	err = pubC.Flush()
+	client := http.Client{}
+	_, err = client.Post(url, "application/json", strings.NewReader(string(reqData)))
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 dodecpubsub:
-        image: redis
+        build: ./dodecpubsub 
         ports:
-                - "8000:6379"
+                - "8000:8000"
 
 dodecregistry:
         build: ./dodecregistry

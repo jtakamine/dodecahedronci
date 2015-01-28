@@ -28,8 +28,8 @@ var saveBuild = func(app string, version string, fFile figFile, dockerRegistryUr
 
 var log = func(msg string, lType logType) (err error) {
 	msgObj := &struct {
-		Msg       string
-		TimeStamp time.Time
+		Msg  string
+		Time time.Time
 	}{
 		msg,
 		time.Now(),
@@ -42,7 +42,7 @@ var log = func(msg string, lType logType) (err error) {
 	msgJson := string(msgData)
 
 	for i := 0; i <= int(lType); i++ {
-		err = dodecpubsub_API.Publish(msgJson, strconv.Itoa(i), "dodecpubsub:6379")
+		err = dodecpubsub_API.Publish(msgJson, strconv.Itoa(i), "http://dodecpubsub:8000/publish")
 		if err != nil {
 			panic(err.Error())
 		}

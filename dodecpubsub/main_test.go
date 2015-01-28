@@ -46,8 +46,8 @@ func testSubscribeAndPublish(channel string, address string, t *testing.T) {
 			if !ok {
 				t.Error("Subscription channel closed unexpectedly")
 			}
-			msgs[msg] = struct{}{}
-			fmt.Printf("msg: %v\n", msg)
+			msgs[msg.Text] = struct{}{}
+			fmt.Printf("msg: %v\n", msg.Text)
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			t.Error("Receive timed out after " + strconv.Itoa(timeout) + "ms")
 		}

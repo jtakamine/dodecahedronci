@@ -20,7 +20,6 @@ func FigBuild(t *testing.T) {
 func FigUp(t *testing.T) {
 	cmd := CreateCmd("fig", "up")
 	cmd.Dir = ".."
-
 	go func() {
 		err := cmd.Run()
 		if err != nil {
@@ -28,7 +27,7 @@ func FigUp(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(15 * time.Second)
+	time.Sleep(time.Second * 30)
 }
 
 func FigKillAndRm(t *testing.T) {
