@@ -1,7 +1,41 @@
-DodecahedronCI
+Introduction: DodecahedronCI
+============================
+
+DodecahedronCI is a continuous integration and continuous deployment server. The name "DodecahedronCI" is a rejection of a recent branding trend that favors simple shapes/primitives: Square, Box, Stripe, Line, and CircleCI. Additionally, DodecahedronCI itself is a rejection of the simple, lightweight component fad. DodecahedronCI favors complicated monolithic systems.
+
+I created this project to introduce myself to the following technologies:
+* Go
+* Docker
+* Linux
+
+
+API Reference:
 ==============
 
-Required Environment Variables:
+	GET /info
+
+	POST /build
+
+	POST /build/githubwebhook
+
+	GET /build/(id)
+	
+	GET /build/(id)/logs
+
+	POST /release
+
+	GET /release/(id)
+
+	POST /deploy
+
+	GET /deploy/(id)
+
+	GET /deploy/(id)/logs
+
+
+Required(?) Environment Variables
+==============================
+
 * DODEC\_HOME
   * Top-level directory where dodecci can clone repositories
 * DODEC\_DOCKER\_USER
