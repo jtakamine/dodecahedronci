@@ -1,16 +1,18 @@
 Introduction: DodecahedronCI
 ============================
 
-DodecahedronCI is a continuous integration and continuous deployment server. The name "DodecahedronCI" is a rejection of a recent branding trend that favors simple shapes/primitives: Square, Box, Stripe, Line, and CircleCI. Additionally, DodecahedronCI itself is a rejection of the simple, lightweight component fad. DodecahedronCI favors complicated monolithic systems.
+DodecahedronCI is a continuous integration and continuous deployment server. The name "DodecahedronCI" is a rejection of a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. Additionally, DodecahedronCI itself is a rejection of the simple, lightweight component fad. DodecahedronCI favors complicated monolithic systems. (just kidding)
 
-I created this project to introduce myself to the following technologies:
+I created this project to introduce myself to the following technologies/tools:
 * Go
 * Docker
+* Git
+* GitHub
 * Linux
 
 
-API Reference:
-==============
+API Reference
+=============
 
 	GET /info
 
