@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
-	dodecpubsub_API "github.com/jtakamine/dodecahedronci/dodecpubsub/api"
 	"github.com/jtakamine/dodecahedronci/testutil"
+	"net"
 	"net/http"
-	"strconv"
+	"net/rpc"
 	"testing"
 	"time"
 )
@@ -20,8 +20,7 @@ func TestMain(t *testing.T) {
 	testutil.FigUp(t)
 	defer testutil.FigKillAndRm(t)
 
-	testSubscribeLogs(t, "ws://localhost:8000/subscribe")
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8002")
+	testRPCExecute(t, "https://github.com/progrium/logspout.git", "localhost:8002")
 }
 
 func TestMainShort(t *testing.T) {
@@ -38,16 +37,11 @@ func TestMainShort(t *testing.T) {
 		return nil
 	}
 
-	log = func(msg string, lType logType) (err error) {
-		fmt.Printf("Published log (level %v): %s\n", lType, msg)
-		return nil
-	}
-
 	go main()
 	time.Sleep(500 * time.Millisecond)
 
-	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8002")
-	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8002")
+	testRPCExecute(t, "https://github.com/jtakamine/dodecahedronci.git", "localhost:8002")
+	testRPCExecute(t, "https://github.com/Leland-Takamine/testtarget.git", "localhost:8002")
 }
 
 func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
@@ -68,15 +62,18 @@ func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
 	resp.Body.Close()
 }
 
-func testSubscribeLogs(t *testing.T, address string) {
-	subChan, err := dodecpubsub_API.Subscribe(strconv.Itoa(int(verboseLogType)), address)
+func testRPCExecute(t *testing.T, repoUrl string, addr string) {
+	conn, err := net.DialTimeout("tcp", addr, time.Second*5)
 	if err != nil {
 		t.Error(err)
+		return
 	}
+	c := rpc.NewClient(conn)
 
-	go func() {
-		for msg := range subChan {
-			fmt.Println("Received message: " + msg.Text)
-		}
-	}()
+	var buildID string
+	err = c.Call("Build.Execute", repoUrl, &buildID)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }

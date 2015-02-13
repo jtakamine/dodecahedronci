@@ -6,27 +6,42 @@ import (
 
 func TestNewLogger(t *testing.T) {
 	id := "asdlfjalsdjflajdlkajlsjdli12342;kj;23l4ll23"
-	l := NewLogger(id)
-	if l.TaskID != id {
+	w := NewWriter(id)
+	if w.TaskID != id {
 		t.Errorf("NewLogger(\"%s\") returned Logger with TaskID=\"%s\"")
 	}
 }
 
-func TestWrite(t *testing.T) {
-	l := NewLogger("12345asdf")
-	l.Write("top level verbose message", Verbose)
-	l.Write("top level info message", Info)
-	l.Write("top level warning message", Warning)
-	l.Write("top level error message", Error)
+func TestChildWriteType(t *testing.T) {
+	w := NewWriter("12345asdf")
+	w.WriteType("top level verbose message", Verbose)
+	w.WriteType("top level info message", Info)
+	w.WriteType("top level warning message", Warning)
+	w.WriteType("top level error message", Error)
 
-	l2 := l.CreateChild()
-	l2.Write("child (depth=1) info message", Info)
-	l2.Write("child (depth=1) info message", Info)
+	w2 := w.CreateChild()
+	w2.WriteType("child (depth=1) info message", Info)
+	w2.WriteType("child (depth=1) info message", Info)
 
-	l3 := l2.CreateChild()
-	l3.Write("child (depth=2) warning message", Warning)
+	w3 := w2.CreateChild()
+	w3.WriteType("child (depth=2) warning message", Warning)
 
-	l2.Write("child (depth=1) info message", Info)
+	w2.WriteType("child (depth=1) info message", Info)
 
-	l.Write("(last) top level info message", Info)
+	w.WriteType("(last) top level info message", Info)
+}
+
+func TestIndentOutdent(t *testing.T) {
+	w := NewWriter("987663ASDF")
+	w.WriteType("non-indented message", Info)
+	w.WriteType("non-indented message #2", Info)
+	w.Indent()
+	w.WriteType("indented once message", Info)
+	w.WriteType("indented once message", Info)
+	w.Indent()
+	w.WriteType("indented twice message", Info)
+	w.Outdent()
+	w.WriteType("indented once message", Info)
+	w.Outdent()
+	w.WriteType("non-indented message", Info)
 }

@@ -2,36 +2,40 @@ package main
 
 import (
 	"github.com/jtakamine/dodecahedronci/configutil"
+	"github.com/jtakamine/dodecahedronci/logutil"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-func cloneOrUpdateGitRepo(repoUrl string) (dir string, err error) {
+func cloneOrUpdateGitRepo(repoUrl string, writer *logutil.Writer) (dir string, err error) {
+	w := writer.WriteType
+
 	dir = strings.TrimSuffix(configutil.Get("DODEC_HOME"), "/") + "/" + repoUrlToDir(repoUrl)
 
 	var cmd *exec.Cmd
 
 	if fInfo, err := os.Stat(dir); os.IsNotExist(err) || !fInfo.IsDir() {
-		log("Cloning git repo from "+repoUrl+"...", infoLogType)
+		w("Cloning git repo from "+repoUrl+"...", logutil.Info)
 		cmd = exec.Command("git", "clone", repoUrl, dir)
 	} else if err == nil {
-		log("Pulling git repo from "+repoUrl+"...", infoLogType)
+		w("Pulling git repo from "+repoUrl+"...", logutil.Info)
 		cmd = exec.Command("git", "pull", "--rebase", repoUrl)
 		cmd.Dir = dir
 	} else {
 		return "", err
 	}
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	wc := writer.CreateChild()
+	cmd.Stdout = wc.CreateWriter(logutil.Verbose)
+	cmd.Stderr = wc.CreateWriter(logutil.Error)
 
 	err = cmd.Run()
 	if err != nil {
 		return "", err
 	}
 
-	log("Done cloning/pulling git repo.", infoLogType)
+	w("Done cloning/pulling git repo.", logutil.Info)
 
 	return dir, nil
 }

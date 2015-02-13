@@ -2,6 +2,7 @@ package logutil
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,27 +16,64 @@ const (
 	Error
 )
 
-type Logger struct {
-	TaskID string
-	depth  int
+const indent = "   "
+
+type Writer struct {
+	TaskID      string
+	DefaultType int
+	depth       int
 }
 
-func (l *Logger) Write(msg string, logType int) {
+func (l *Writer) Write(p []byte) (n int, err error) {
+	n = len(p)
+	msg := string(p[:n])
+	msgs := strings.Split(msg, "\n")
+	for _, m := range msgs {
+		l.WriteType(m, l.DefaultType)
+	}
+	return n, nil
+}
+
+func (l *Writer) WriteType(msg string, logType int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	now := time.Now().Format("2006-01-02T15:04:05")
-	indent := ""
+	indents := ""
 	for i := 0; i < l.depth; i++ {
-		indent += "    "
+		indents += indent
 	}
-	fmt.Printf("[%s][%d] %s\t| %s%s\n", l.TaskID, logType, now, indent, msg)
+	fmt.Printf("[%s][%d] %s\t| %s%s\n", l.TaskID, logType, now, indents, msg)
 }
 
-func (l *Logger) CreateChild() *Logger {
-	return &Logger{TaskID: l.TaskID, depth: l.depth + 1}
+func (l *Writer) Indent() {
+	l.depth += 1
 }
 
-func NewLogger(taskID string) *Logger {
-	return &Logger{TaskID: taskID}
+func (l *Writer) Outdent() {
+	l.depth -= 1
+	if l.depth < 0 {
+		l.depth = 0
+	}
+}
+
+func (l *Writer) CreateChild() *Writer {
+	return &Writer{
+		TaskID: l.TaskID,
+		depth:  l.depth + 1,
+	}
+}
+
+func (l *Writer) CreateWriter(logType int) (w *Writer) {
+	return &Writer{
+		TaskID:      l.TaskID,
+		DefaultType: logType,
+		depth:       l.depth,
+	}
+}
+
+func NewWriter(taskID string) *Writer {
+	return &Writer{
+		TaskID: taskID,
+	}
 }

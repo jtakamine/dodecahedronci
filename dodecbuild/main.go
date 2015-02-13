@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/jtakamine/dodecahedronci/configutil"
+	"net"
+	"net/rpc"
 	"strconv"
 )
 
@@ -15,12 +17,17 @@ func main() {
 		return
 	}
 
-	err := ListenAndServe(":" + strconv.Itoa(port))
+	err := rpc.Register(&Build{})
 	if err != nil {
-		fmt.Println("An error occurred while instantiating the service:\n" + err.Error())
-	} else {
-		fmt.Println("Server exited.")
+		panic("Error creating RPC server: " + err.Error())
 	}
+
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		panic("Error listening on TCP port: " + err.Error())
+	}
+
+	rpc.Accept(l)
 }
 
 var parseArgs = func() (port int) {
