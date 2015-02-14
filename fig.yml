@@ -8,6 +8,12 @@ dodecregistry:
         ports:
                 - "8001:8000"
 
+dodeccontrol:
+        build: ./dodeccontrol
+        ports:
+                - "8080:8000"
+                - "9090:9000"
+
 dodecbuild:
         build: ./dodecbuild
         ports:
@@ -19,8 +25,10 @@ dodecbuild:
                 DODEC_DOCKER_USER:
                 DODEC_DOCKER_PASSWORD:
                 DODEC_DOCKER_EMAIL:
+                STDROUTE_DEST: dodeccontrol:9000
         privileged: true
         links:
+                - dodeccontrol
                 - dodecregistry
                 - dodecpubsub
 
@@ -29,5 +37,6 @@ dodecdeploy:
         ports:
                 - "8003:8000"
         links:
+                - dodeccontrol
                 - dodecregistry
                 - dodecpubsub

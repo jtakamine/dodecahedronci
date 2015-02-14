@@ -19,6 +19,7 @@ const (
 const indent = "   "
 
 type Writer struct {
+	Source      string
 	TaskID      string
 	DefaultType int
 	depth       int
@@ -43,7 +44,8 @@ func (l *Writer) WriteType(msg string, logType int) {
 	for i := 0; i < l.depth; i++ {
 		indents += indent
 	}
-	fmt.Printf("[%s][%d] %s\t| %s%s\n", l.TaskID, logType, now, indents, msg)
+
+	fmt.Printf("[%s][%s][%d] %s\t| %s%s\n", l.Source, l.TaskID, logType, now, indents, msg)
 }
 
 func (l *Writer) Indent() {
@@ -59,6 +61,7 @@ func (l *Writer) Outdent() {
 
 func (l *Writer) CreateChild() *Writer {
 	return &Writer{
+		Source: l.Source,
 		TaskID: l.TaskID,
 		depth:  l.depth + 1,
 	}
@@ -66,14 +69,16 @@ func (l *Writer) CreateChild() *Writer {
 
 func (l *Writer) CreateWriter(logType int) (w *Writer) {
 	return &Writer{
+		Source:      l.Source,
 		TaskID:      l.TaskID,
 		DefaultType: logType,
 		depth:       l.depth,
 	}
 }
 
-func NewWriter(taskID string) *Writer {
+func NewWriter(source string, taskID string) *Writer {
 	return &Writer{
+		Source: source,
 		TaskID: taskID,
 	}
 }
