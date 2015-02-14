@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jtakamine/dodecahedronci/configutil"
 	"net"
 	"net/rpc"
 	"strconv"
@@ -12,10 +11,6 @@ import (
 func main() {
 	port := parseArgs()
 	fmt.Printf("Listening on port %v\n", port)
-
-	if !validateConfig() {
-		return
-	}
 
 	err := rpc.Register(&Build{})
 	if err != nil {
@@ -34,21 +29,4 @@ var parseArgs = func() (port int) {
 	portPtr := flag.Int("port", 80, "The port on which this service will listen")
 	flag.Parse()
 	return *portPtr
-}
-
-func validateConfig() bool {
-	requiredConfig := []string{
-		"DODEC_HOME",
-		"DODEC_DOCKER_USER",
-		"DODEC_DOCKER_PASSWORD",
-		"DODEC_DOCKER_EMAIL",
-	}
-
-	err := configutil.Require(requiredConfig)
-	if err != nil {
-		fmt.Println("An error occurred:\n" + err.Error())
-		return false
-	}
-
-	return true
 }

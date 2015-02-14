@@ -10,9 +10,6 @@ func main() {
 	fmt.Printf("Listening on port %d for HTTP, port %d for RPC\n", port, rpcPort)
 
 	rpcListen(rpcPort)
-
-	for {
-	}
 }
 
 var parseArgs = func() (port int, rpcPort int) {

@@ -28,8 +28,7 @@ RUN go install github.com/jtakamine/stdroute
 RUN go get gopkg.in/yaml.v2
 
 # Get Internal Go packages
-RUN go get github.com/jtakamine/dodecahedronci/configutil
-RUN go get github.com/jtakamine/dodecahedronci/logutil #15.02.13
+RUN go get github.com/jtakamine/dodecahedronci/logutil #15.02.13.21
 RUN go get github.com/jtakamine/dodecahedronci/dodecregistry/api
 RUN go get github.com/jtakamine/dodecahedronci/dodecpubsub/api #15.01.28
 

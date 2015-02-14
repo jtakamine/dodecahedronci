@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"github.com/jtakamine/dodecahedronci/configutil"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 )
+
+const appDataDir = "/var/lib/dodec/"
 
 type figFile struct {
 	File   string
@@ -35,7 +36,7 @@ func generateBuildID() string {
 	return hex.EncodeToString(id)
 }
 
-func build(repoDir string, app string, dockerRegistryUrl string, writer *logutil.Writer) (err error) {
+func build(repoDir string, app string, dockerRegistryUrl string, dockerUser string, writer *logutil.Writer) (err error) {
 	w := writer.WriteType
 	wIn := writer.Indent
 	wOut := writer.Outdent
@@ -92,7 +93,7 @@ func build(repoDir string, app string, dockerRegistryUrl string, writer *logutil
 			w("Retrieved Docker repository name: "+repo, logutil.Verbose)
 
 			w("Generating Docker image tag...", logutil.Verbose)
-			tag := getDockerTag(dockerRegistryUrl, configutil.Get("DODEC_DOCKER_USER"), repo, version)
+			tag := getDockerTag(dockerRegistryUrl, dockerUser, repo, version)
 			w("Generated Docker image tag: "+tag, logutil.Verbose)
 
 			w("Building Dockerfile "+dFile.File+"...", logutil.Verbose)

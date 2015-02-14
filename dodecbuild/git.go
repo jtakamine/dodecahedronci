@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jtakamine/dodecahedronci/configutil"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"os"
 	"os/exec"
@@ -11,7 +10,7 @@ import (
 func cloneOrUpdateGitRepo(repoUrl string, writer *logutil.Writer) (dir string, err error) {
 	w := writer.WriteType
 
-	dir = strings.TrimSuffix(configutil.Get("DODEC_HOME"), "/") + "/" + repoUrlToDir(repoUrl)
+	dir = strings.TrimSuffix(appDataDir, "/") + "/" + repoUrlToDir(repoUrl)
 
 	var cmd *exec.Cmd
 

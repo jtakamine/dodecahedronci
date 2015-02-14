@@ -82,3 +82,21 @@ func testRPCExecute(t *testing.T, msg string, addr string) {
 		return
 	}
 }
+
+func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
+	var err error
+	var req *http.Request
+	var resp *http.Response
+
+	payload := "{\"repository\":{\"id\":1234567,\"ssh_url\":\"git@github.com:jtakamine/dodecahedronci.git\", \"clone_url\":\"" + cloneUrl + "\"}}"
+	req, err = http.NewRequest("POST", targetUrl, bytes.NewBufferString(payload))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	resp.Body.Close()
+}
