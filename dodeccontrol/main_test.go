@@ -2,11 +2,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/jtakamine/dodecahedronci/testutil"
 	"net"
 	"net/rpc/jsonrpc"
 	"testing"
 	"time"
 )
+
+func TestMain(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	testutil.FigBuild(t)
+	testutil.FigUp(t)
+	defer testutil.FigKillAndRm(t)
+}
 
 func TestMainShort(t *testing.T) {
 	if !testing.Short() {
@@ -24,11 +35,12 @@ func TestMainShort(t *testing.T) {
 }
 
 func testRPCExecute(t *testing.T, msg string, addr string) {
+	tStamp := "2015-02-14T15:04:05+07:00"
 	logType := 0
 	taskID := "mytaskID"
 	src := "mysource"
 
-	log := fmt.Sprintf("[%s][%s][%d]\t|%s", src, taskID, logType, msg)
+	log := fmt.Sprintf("[%s][%s][%d] %s\t|%s", src, taskID, logType, tStamp, msg)
 
 	conn, err := net.DialTimeout("tcp", addr, time.Second*5)
 	if err != nil {

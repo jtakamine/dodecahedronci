@@ -76,4 +76,5 @@ func testRPCExecute(t *testing.T, repoUrl string, addr string) {
 		t.Error(err)
 		return
 	}
+	fmt.Printf("buildID=%d\n", buildID)
 }

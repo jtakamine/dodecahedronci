@@ -7,9 +7,8 @@ import (
 type Build struct{}
 
 func (b *Build) Execute(repoUrl string, buildID *string) (err error) {
-	id := generateBuildID()
-	buildID = &id
-	writer := logutil.NewWriter(id)
+	*buildID = generateBuildID()
+	writer := logutil.NewWriter("build", *buildID)
 
 	repoDir, err := cloneOrUpdateGitRepo(repoUrl, writer)
 	if err != nil {

@@ -39,7 +39,7 @@ func (l *Writer) WriteType(msg string, logType int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	now := time.Now().Format("2006-01-02T15:04:05")
+	now := time.Now().Format(time.RFC3339)
 	indents := ""
 	for i := 0; i < l.depth; i++ {
 		indents += indent
