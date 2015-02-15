@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/jtakamine/dodecahedronci/logutil"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"net"
 	"net/rpc"
@@ -30,8 +31,13 @@ func TestMainShort(t *testing.T) {
 		return 8002
 	}
 
-	saveBuild = func(app string, version string, fFile figFile, dockerRegistryUrl string) (err error) {
-		fmt.Printf("Saved build. Fig file:%v\n", fFile.Config)
+	pushDockerImage = func(tag string, writer *logutil.Writer) (err error) {
+		fmt.Printf("**Mocked: push docker image %s to registry.\n", tag)
+		return nil
+	}
+
+	saveBuild = func(app string, version string, fFile figFile) (err error) {
+		fmt.Printf("**Mocked: Saved build. Fig file:%v\n", fFile.Config)
 		return nil
 	}
 
@@ -51,8 +57,7 @@ func testRPCExecute(t *testing.T, repoUrl string, dockerUser string, addr string
 	c := rpc.NewClient(conn)
 
 	args := &BuildArgs{
-		RepoUrl:    repoUrl,
-		DockerUser: dockerUser,
+		RepoUrl: repoUrl,
 	}
 
 	var buildID string

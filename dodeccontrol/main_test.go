@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"net"
+	"net/http"
 	"net/rpc/jsonrpc"
 	"testing"
 	"time"
@@ -17,6 +19,10 @@ func TestMain(t *testing.T) {
 	testutil.FigBuild(t)
 	testutil.FigUp(t)
 	defer testutil.FigKillAndRm(t)
+
+	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8080/github/builds")
+
+	time.Sleep(time.Second * 15)
 }
 
 func TestMainShort(t *testing.T) {

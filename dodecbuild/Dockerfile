@@ -39,4 +39,4 @@ RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 EXPOSE 8000
 
 # Run application
-CMD /usr/local/bin/wrapdocker & dodecbuild -port 8000 | stdroute
+CMD /usr/local/bin/wrapdocker & dodecbuild -port 9000 | stdroute

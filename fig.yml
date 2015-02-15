@@ -1,3 +1,6 @@
+dockerregistry:
+        image: registry
+
 dodecpubsub:
         build: ./dodecpubsub 
         ports:
@@ -13,30 +16,28 @@ dodeccontrol:
         ports:
                 - "8080:8000"
                 - "9090:9000"
+        environment:
+                DODEC_BUILDRPCADDR: dodecbuild:9000
+        links:
+                - dodecbuild
+
 
 dodecbuild:
         build: ./dodecbuild
         ports:
-                - "8002:8000"
+                - "8002:9000"
         environment:
-                DODEC_HOME:
-                DODEC_GITHUB_USER:
-                DODEC_GITHUB_PASSWORD:
-                DODEC_DOCKER_USER:
-                DODEC_DOCKER_PASSWORD:
-                DODEC_DOCKER_EMAIL:
                 STDROUTE_DEST: dodeccontrol:9000
         privileged: true
         links:
-                - dodeccontrol
                 - dodecregistry
                 - dodecpubsub
 
-dodecdeploy:
-        build: ./dodecdeploy
-        ports:
-                - "8003:8000"
-        links:
-                - dodeccontrol
-                - dodecregistry
-                - dodecpubsub
+#dodecdeploy:
+#        build: ./dodecdeploy
+#        ports:
+#                - "8003:8000"
+#        links:
+#                - dodeccontrol
+#                - dodecregistry
+#                - dodecpubsub

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -10,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -28,21 +26,22 @@ type dockerFile struct {
 	File       string
 }
 
-func generateBuildID() string {
-	id := make([]byte, 8)
+func generateRandID(length int) string {
+	id := make([]byte, length)
 	if _, err := io.ReadFull(rand.Reader, id); err != nil {
 		panic(err)
 	}
 	return hex.EncodeToString(id)
 }
 
-func build(repoDir string, app string, dockerRegistryUrl string, dockerUser string, writer *logutil.Writer) (err error) {
+func build(repoDir string, app string, writer *logutil.Writer) (err error) {
 	w := writer.WriteType
 	wIn := writer.Indent
 	wOut := writer.Outdent
 
 	w("Retrieving next version number...", logutil.Info)
 	version := getNextVersion(app)
+
 	w("Retrieved version number: "+version, logutil.Info)
 
 	w("Searching for fig files in "+repoDir+"...", logutil.Info)
@@ -84,25 +83,18 @@ func build(repoDir string, app string, dockerRegistryUrl string, dockerUser stri
 		wIn()
 		for j, dFile := range dFiles {
 			w("Processing Dockerfile #"+strconv.Itoa(j+1)+"...", logutil.Verbose)
-			w("Retrieving Docker repository name based on Dockerfile path...", logutil.Verbose)
-			repo, err := getDockerRepo(dFile.File)
-			if err != nil {
-				w("Error encountered while retrieving Docker repository name: "+err.Error(), logutil.Error)
-				return err
-			}
-			w("Retrieved Docker repository name: "+repo, logutil.Verbose)
-
-			w("Generating Docker image tag...", logutil.Verbose)
-			tag := getDockerTag(dockerRegistryUrl, dockerUser, repo, version)
-			w("Generated Docker image tag: "+tag, logutil.Verbose)
 
 			w("Building Dockerfile "+dFile.File+"...", logutil.Verbose)
-			err = buildDockerFile(dFile.File, tag, writer.CreateChild())
+			tag, err := buildDockerFile(dFile.File, version, writer.CreateChild())
 			if err != nil {
 				w("Error encountered while building Dockerfile: "+err.Error(), logutil.Error)
 				return err
 			}
 			w("Built Dockerfile.", logutil.Verbose)
+
+			w("Pushing Docker image "+tag+"...", logutil.Verbose)
+			err = pushDockerImage(tag, writer.CreateChild())
+			w("Pushed Docker image "+tag+".", logutil.Verbose)
 
 			w("Replacing \"build\" node with appropriate \"image\" node in Fig file...", logutil.Verbose)
 			err = updateFigFileWithDockerImage(fFile, dFile, tag)
@@ -115,7 +107,7 @@ func build(repoDir string, app string, dockerRegistryUrl string, dockerUser stri
 		wOut()
 
 		w("Posting the build to the Dodec Registry...", logutil.Verbose)
-		err = saveBuild(app, version, fFile, dockerRegistryUrl)
+		err = saveBuild(app, version, fFile)
 		if err != nil {
 			w("Error encountered while posting the build to the Dodec Registry: "+err.Error(), logutil.Error)
 			return err
@@ -173,74 +165,6 @@ func getDockerFiles(fFile figFile) (dFiles []dockerFile, err error) {
 	}
 
 	return dFiles, nil
-}
-
-func getDockerRepo(dFile string) (repo string, err error) {
-	dir := filepath.Dir(dFile)
-	parts := strings.Split(dir, "/")
-
-	//default repo name is the name of the directory containing the Dockerfile
-	repo = parts[len(parts)-1]
-
-	repoHint := "#repoHint:"
-
-	file, err := os.Open(dFile)
-	if err != nil {
-		return "", nil
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, repoHint) {
-			repo = strings.TrimPrefix(line, repoHint)
-			return repo, nil
-		}
-	}
-
-	err = scanner.Err()
-	if err != nil {
-		return "", err
-	}
-
-	return repo, nil
-}
-
-func getDockerTag(dockerRegistryUrl string, dockerUser string, dockerRepo string, version string) (tag string) {
-	registryPrefix := ""
-	if dockerRegistryUrl != "" {
-		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "http://")
-		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "https://")
-		registryPrefix = dockerRegistryUrl + "/"
-	}
-
-	userPrefix := ""
-	if dockerUser != "" {
-		userPrefix = dockerUser + "/"
-	}
-
-	versionSuffix := ""
-	if version != "" {
-		versionSuffix = ":" + version
-	}
-
-	tag = registryPrefix + userPrefix + dockerRepo + versionSuffix
-	return tag
-}
-
-func buildDockerFile(dFile string, tag string, w *logutil.Writer) (err error) {
-	cmd := exec.Command("docker", "build", "-t", tag, ".")
-	cmd.Dir = filepath.Dir(dFile)
-	cmd.Stdout = w.CreateWriter(logutil.Verbose)
-	cmd.Stderr = w.CreateWriter(logutil.Error)
-
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func updateFigFileWithDockerImage(fFile figFile, dFile dockerFile, tag string) (err error) {

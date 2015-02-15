@@ -5,14 +5,13 @@ import (
 )
 
 type BuildArgs struct {
-	RepoUrl    string
-	DockerUser string
+	RepoUrl string
 }
 
 type Build struct{}
 
 func (b *Build) Execute(args BuildArgs, buildID *string) (err error) {
-	*buildID = generateBuildID()
+	*buildID = generateRandID(8)
 	writer := logutil.NewWriter("build", *buildID)
 
 	repoDir, err := cloneOrUpdateGitRepo(args.RepoUrl, writer)
@@ -20,7 +19,7 @@ func (b *Build) Execute(args BuildArgs, buildID *string) (err error) {
 		return err
 	}
 
-	err = build(repoDir, "myAwesomeApp", "http://localhost:8080", args.DockerUser, writer)
+	err = build(repoDir, "myAwesomeApp", writer)
 	if err != nil {
 		return err
 	}

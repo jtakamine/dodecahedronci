@@ -1,5 +1,8 @@
 FROM golang
 
+# Get External Go packages
+RUN go get github.com/gorilla/mux
+
 # Get Internal Go packages
 RUN go get github.com/jtakamine/stdroute
 RUN go install github.com/jtakamine/stdroute

@@ -8,6 +8,7 @@ import (
 
 //in-memory log storage--eventually this should be persistent
 var logs = make(map[string]map[string][]LogEntry)
+var buildAddr string
 
 type LogEntry struct {
 	Type int
