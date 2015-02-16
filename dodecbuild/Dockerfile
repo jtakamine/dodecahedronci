@@ -21,7 +21,7 @@ RUN chmod +x /usr/local/bin/wrapdocker
 VOLUME /var/lib/docker
 
 # Install stdroute 
-RUN go get github.com/jtakamine/stdroute #15.02.15
+RUN go get github.com/jtakamine/stdroute #15.02.16
 RUN go install github.com/jtakamine/stdroute
 
 # Get External Go packages
