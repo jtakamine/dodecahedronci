@@ -1,12 +1,16 @@
 package main
 
 import (
+	"fmt"
 	dodecregistry_API "github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"gopkg.in/yaml.v2"
+	"net"
+	"net/rpc/jsonrpc"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var buildDockerFile = func(dFile string, version string, writer *logutil.Writer) (tag string, err error) {
@@ -66,6 +70,45 @@ var pushDockerImage = func(tag string, writer *logutil.Writer) (err error) {
 	cmd.Stderr = writer.CreateWriter(logutil.Error)
 
 	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var rpcRegisterService = func() (err error) {
+	iface, err := net.InterfaceByName("eth0")
+	if err != nil {
+		return err
+	}
+
+	addrs, err := iface.Addrs()
+	if err != nil {
+		return err
+	}
+	if len(addrs) == 0 {
+		return "Could not find IP address associated with eth0 device"
+	}
+
+	ip := strings.Split(addrs[0].String(), "/")[0]
+
+	conn, err := net.DialTimeout("tcp", "dodeccontrol:9000", time.Second)
+	if err != nil {
+		return err
+	}
+	c := jsonrpc.NewClient(conn)
+
+	args := &struct {
+		Service  string
+		Endpoint string
+	}{
+		Service:  "build",
+		Endpoint: ip + ":9000",
+	}
+
+	var success boossociatel
+	err = c.Call("Service.Register", args, &success)
 	if err != nil {
 		return err
 	}

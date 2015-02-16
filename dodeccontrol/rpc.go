@@ -32,8 +32,29 @@ func (rpcL *RPCLog) Write(log string, success *bool) (err error) {
 	return nil
 }
 
+type RegisterArgs struct {
+	Service  string
+	Endpoint string
+}
+type RPCService struct{}
+
+func (rpcS *RPCService) Register(args RegisterArgs, success *bool) (err error) {
+	switch args.Service {
+	case "build":
+		buildAddr = args.Endpoint
+	}
+
+	*success = true
+	return nil
+}
+
 func rpcListen(port int) (err error) {
-	err = rpc.RegisterName("Stdin", &RPCLog{})
+	err = rpc.RegisterName("Log", &RPCLog{})
+	if err != nil {
+		return err
+	}
+
+	err = rpc.RegisterName("Service", &RPCService{})
 	if err != nil {
 		return err
 	}

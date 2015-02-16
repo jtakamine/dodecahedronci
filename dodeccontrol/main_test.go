@@ -20,6 +20,8 @@ func TestMain(t *testing.T) {
 	testutil.FigUp(t)
 	defer testutil.FigKillAndRm(t)
 
+	time.Sleep(time.Second * 2)
+
 	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8080/github/builds")
 
 	time.Sleep(time.Second * 15)
@@ -64,7 +66,7 @@ func testRPCExecute(t *testing.T, msg string, addr string) {
 
 	var success bool
 
-	err = c.Call("Stdin.Write", log, &success)
+	err = c.Call("Log.Write", log, &success)
 	if err != nil {
 		t.Error(err)
 		return

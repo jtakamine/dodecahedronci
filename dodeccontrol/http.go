@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
@@ -71,7 +70,7 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 
 	err = rpcExecuteBuild(repoUrl)
 	if err != nil {
-		panic("Error executing RPC Build Execute: " + err)
+		panic("Error executing RPC Build Execute: " + err.Error())
 	}
 }
 

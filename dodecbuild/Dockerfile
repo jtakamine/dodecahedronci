@@ -21,7 +21,7 @@ RUN chmod +x /usr/local/bin/wrapdocker
 VOLUME /var/lib/docker
 
 # Install stdroute 
-RUN go get github.com/jtakamine/stdroute
+RUN go get github.com/jtakamine/stdroute #15.02.15
 RUN go install github.com/jtakamine/stdroute
 
 # Get External Go packages
@@ -39,4 +39,4 @@ RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 EXPOSE 8000
 
 # Run application
-CMD /usr/local/bin/wrapdocker & dodecbuild -port 9000 | stdroute
+CMD /usr/local/bin/wrapdocker & dodecbuild -port 9000 | stdroute -dest $STDROUTE_DEST -method "Log.Write"

@@ -16,11 +16,6 @@ dodeccontrol:
         ports:
                 - "8080:8000"
                 - "9090:9000"
-        environment:
-                DODEC_BUILDRPCADDR: dodecbuild:9000
-        links:
-                - dodecbuild
-
 
 dodecbuild:
         build: ./dodecbuild
@@ -30,6 +25,7 @@ dodecbuild:
                 STDROUTE_DEST: dodeccontrol:9000
         privileged: true
         links:
+                - dodeccontrol
                 - dodecregistry
                 - dodecpubsub
 

@@ -8,7 +8,7 @@ import (
 )
 
 var rpcExecuteBuild = func(repoUrl string) (err error) {
-	conn, err := net.DialTimeout("tcp", "dodecbuild:9000", time.Second)
+	conn, err := net.DialTimeout("tcp", buildAddr, time.Second)
 	if err != nil {
 		return err
 	}
