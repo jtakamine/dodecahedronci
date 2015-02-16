@@ -1,11 +1,6 @@
 dockerregistry:
         image: registry
 
-dodecpubsub:
-        build: ./dodecpubsub 
-        ports:
-                - "8000:8000"
-
 dodecregistry:
         build: ./dodecregistry
         ports:
@@ -27,7 +22,6 @@ dodecbuild:
         links:
                 - dodeccontrol
                 - dodecregistry
-                - dodecpubsub
 
 #dodecdeploy:
 #        build: ./dodecdeploy
