@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	dodecregistry_API "github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"gopkg.in/yaml.v2"
@@ -69,6 +70,7 @@ var pushDockerImage = func(tag string, writer *logutil.Writer) (err error) {
 	cmd.Stdout = writer.CreateWriter(logutil.Verbose)
 	cmd.Stderr = writer.CreateWriter(logutil.Error)
 
+	fmt.Printf("pushing docker image: %s", tag)
 	err = cmd.Run()
 	if err != nil {
 		return err

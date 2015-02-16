@@ -41,6 +41,11 @@ func TestMainShort(t *testing.T) {
 		return nil
 	}
 
+	rpcRegisterService = func() (err error) {
+		fmt.Println("**Mocked: Registered service.")
+		return nil
+	}
+
 	go main()
 	time.Sleep(500 * time.Millisecond)
 

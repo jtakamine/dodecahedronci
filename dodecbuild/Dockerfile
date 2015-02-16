@@ -30,7 +30,6 @@ RUN go get gopkg.in/yaml.v2
 # Get Internal Go packages
 RUN go get github.com/jtakamine/dodecahedronci/logutil #15.02.13.21
 RUN go get github.com/jtakamine/dodecahedronci/dodecregistry/api
-RUN go get github.com/jtakamine/dodecahedronci/dodecpubsub/api #15.01.28
 
 # Get source and install application
 ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
