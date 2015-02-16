@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	dodecregistry_API "github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"gopkg.in/yaml.v2"
@@ -88,7 +88,7 @@ var rpcRegisterService = func() (err error) {
 		return err
 	}
 	if len(addrs) == 0 {
-		return "Could not find IP address associated with eth0 device"
+		return errors.New("Could not find IP address associated with eth0 device")
 	}
 
 	ip := strings.Split(addrs[0].String(), "/")[0]
@@ -107,7 +107,7 @@ var rpcRegisterService = func() (err error) {
 		Endpoint: ip + ":9000",
 	}
 
-	var success boossociatel
+	var success bool
 	err = c.Call("Service.Register", args, &success)
 	if err != nil {
 		return err
