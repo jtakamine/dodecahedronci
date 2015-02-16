@@ -34,10 +34,17 @@ func TestMainShort(t *testing.T) {
 		return 8000, 9000
 	}
 
+	rpcExecuteBuild = func(repoUrl string) (err error) {
+		fmt.Printf("***Mocked: RPC Execute Build. Repo Url: %s\n", repoUrl)
+		return nil
+	}
+
 	go main()
 	time.Sleep(500 * time.Millisecond)
 
 	testRPCExecute(t, "my message", "localhost:9000")
+	testWebhook(t, "https://github.com/jtakamine/dodecahedronci.git", "http://localhost:8000/github/builds")
+	testWebhook(t, "https://github.com/Leland-Takamine/testtarget.git", "http://localhost:8000/github/builds")
 }
 
 func testRPCExecute(t *testing.T, msg string, addr string) {

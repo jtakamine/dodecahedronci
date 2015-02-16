@@ -5,7 +5,7 @@ import (
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"github.com/jtakamine/dodecahedronci/testutil"
 	"net"
-	"net/rpc"
+	"net/rpc/jsonrpc"
 	"testing"
 	"time"
 )
@@ -54,7 +54,7 @@ func testRPCExecute(t *testing.T, repoUrl string, dockerUser string, addr string
 		t.Error(err)
 		return
 	}
-	c := rpc.NewClient(conn)
+	c := jsonrpc.NewClient(conn)
 
 	args := &BuildArgs{
 		RepoUrl: repoUrl,

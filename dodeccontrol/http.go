@@ -59,7 +59,6 @@ func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
 }
 func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("here")
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic("Error reading request body: " + err.Error())
@@ -70,9 +69,10 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 		panic("Error parsing GitHub request: " + err.Error())
 	}
 
-	fmt.Println("here2")
-
-	rpcExecuteBuild(repoUrl)
+	err = rpcExecuteBuild(repoUrl)
+	if err != nil {
+		panic("Error executing RPC Build Execute: " + err)
+	}
 }
 
 func handleGetReleases(w http.ResponseWriter, r *http.Request) {
