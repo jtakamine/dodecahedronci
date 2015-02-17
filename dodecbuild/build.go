@@ -34,13 +34,13 @@ func generateRandID(length int) string {
 	return hex.EncodeToString(id)
 }
 
-func build(repoDir string, app string, writer *logutil.Writer) (err error) {
+func build(repoDir string, uuid string, appName string, writer *logutil.Writer) (err error) {
 	w := writer.WriteType
 	wIn := writer.Indent
 	wOut := writer.Outdent
 
 	w("Retrieving next version number...", logutil.Info)
-	version := getNextVersion(app)
+	version := getNextVersion(appName)
 
 	w("Retrieved version number: "+version, logutil.Info)
 
@@ -107,7 +107,7 @@ func build(repoDir string, app string, writer *logutil.Writer) (err error) {
 		wOut()
 
 		w("Posting the build to the Dodec Registry...", logutil.Verbose)
-		err = saveBuild(app, version, fFile)
+		err = saveBuild(uuid, appName, version, fFile)
 		if err != nil {
 			w("Error encountered while posting the build to the Dodec Registry: "+err.Error(), logutil.Error)
 			return err

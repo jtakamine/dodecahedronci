@@ -22,7 +22,7 @@ func TestMain(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8080/github/builds")
+	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000/github/builds")
 
 	time.Sleep(time.Second * 15)
 }

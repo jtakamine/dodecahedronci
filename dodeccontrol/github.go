@@ -4,19 +4,18 @@ import (
 	"encoding/json"
 )
 
-func parseGitHubRequest(data []byte) (repoUrl string, err error) {
+func parseGitHubRequest(data []byte) (repoUrl string, appName string, err error) {
 	req := &struct {
 		Repository struct {
-			Id        int
-			Ssh_url   string
+			Name      string
 			Clone_url string
 		}
 	}{}
 
 	err = json.Unmarshal(data, req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return req.Repository.Clone_url, nil
+	return req.Repository.Clone_url, req.Repository.Name, nil
 }

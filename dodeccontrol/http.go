@@ -63,12 +63,12 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 		panic("Error reading request body: " + err.Error())
 	}
 
-	repoUrl, err := parseGitHubRequest(data)
+	repoUrl, appName, err := parseGitHubRequest(data)
 	if err != nil {
 		panic("Error parsing GitHub request: " + err.Error())
 	}
 
-	err = rpcExecuteBuild(repoUrl)
+	err = rpcExecuteBuild(repoUrl, appName)
 	if err != nil {
 		panic("Error executing RPC Build Execute: " + err.Error())
 	}

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var rpcExecuteBuild = func(repoUrl string) (err error) {
+var rpcExecuteBuild = func(repoUrl string, appName string) (err error) {
 	conn, err := net.DialTimeout("tcp", buildAddr, time.Second)
 	if err != nil {
 		return err
@@ -16,12 +16,14 @@ var rpcExecuteBuild = func(repoUrl string) (err error) {
 
 	args := &struct {
 		RepoUrl string
+		AppName string
 	}{
 		RepoUrl: repoUrl,
+		AppName: appName,
 	}
 
-	var buildID string
-	err = c.Call("Build.Execute", args, &buildID)
+	var uuid string
+	err = c.Call("Build.Execute", args, &uuid)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

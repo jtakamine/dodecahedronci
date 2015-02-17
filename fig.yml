@@ -1,33 +1,37 @@
-dockerregistry:
-        image: registry
-
-dodecregistry:
-        build: ./dodecregistry
-        ports:
-                - "8001:8000"
-
 dodeccontrol:
         build: ./dodeccontrol
         ports:
-                - "8080:8000"
-                - "9090:9000"
+                - "8000:8000"
 
 dodecbuild:
         build: ./dodecbuild
-        ports:
-                - "8002:9000"
         environment:
                 STDROUTE_DEST: dodeccontrol:9000
+                DODEC_REPOADDR: dodecrepo:9000
         privileged: true
         links:
                 - dodeccontrol
-                - dodecregistry
+                - dodecrepo
 
 #dodecdeploy:
 #        build: ./dodecdeploy
-#        ports:
-#                - "8003:8000"
+#        environment:
+#               STDROUTE_DEST: dodeccontrol:9000
+#               DODEC_REPOADDR: dodecrepo:9000
 #        links:
 #                - dodeccontrol
-#                - dodecregistry
-#                - dodecpubsub
+#                - dodecrepo
+
+dodecrepo:
+        build: ./dodecrepo
+        environment:
+                DODEC_POSTGRESADDR: postgres:5432
+        links:
+                - postgres
+
+postgres:
+        image: postgres
+
+dockerregistry:
+        image: registry
+

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/jtakamine/dodecahedronci/logutil"
-	"github.com/jtakamine/dodecahedronci/testutil"
 	"net"
 	"net/rpc/jsonrpc"
 	"testing"
@@ -11,22 +10,6 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	testutil.FigBuild(t)
-	testutil.FigUp(t)
-	defer testutil.FigKillAndRm(t)
-
-	testRPCExecute(t, "https://github.com/progrium/logspout.git", "jtakamine", "localhost:8002")
-}
-
-func TestMainShort(t *testing.T) {
-	if !testing.Short() {
-		t.Skip()
-	}
-
 	parseArgs = func() (port int) {
 		return 8002
 	}

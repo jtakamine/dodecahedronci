@@ -48,7 +48,7 @@ var buildDockerFile = func(dFile string, version string, writer *logutil.Writer)
 	return tag, nil
 }
 
-var saveBuild = func(app string, version string, fFile figFile) (err error) {
+var saveBuild = func(appName string, version string, fFile figFile) (err error) {
 	data, err := yaml.Marshal(fFile.Config)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ var saveBuild = func(app string, version string, fFile figFile) (err error) {
 
 	build := dodecregistry_API.Build{Artifact: artifactStr}
 
-	err = dodecregistry_API.PostBuild(app, version, build, "http://dodecregistry:8000/")
+	err = dodecregistry_API.PostBuild(appName, version, build, "http://dodecrepo:8000/")
 	if err != nil {
 		return err
 	}
