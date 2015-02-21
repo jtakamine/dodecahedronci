@@ -1,4 +1,5 @@
 #!/bin/bash
+#from: http://stackoverflow.com/questions/28244869/creating-a-table-in-single-user-mode-in-postgres
 
 echo "******INITIALIZING DATABASE******"
 
