@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	dodecregistry_API "github.com/jtakamine/dodecahedronci/dodecregistry/api"
 	"github.com/jtakamine/dodecahedronci/logutil"
 	"gopkg.in/yaml.v2"
 	"net"

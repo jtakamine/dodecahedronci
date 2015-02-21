@@ -5,13 +5,13 @@ dodeccontrol:
 
 dodecbuild:
         build: ./dodecbuild
+        links:
+                - dodeccontrol
+                - dodecrepo
         environment:
                 STDROUTE_DEST: dodeccontrol:9000
                 DODEC_REPOADDR: dodecrepo:9000
         privileged: true
-        links:
-                - dodeccontrol
-                - dodecrepo
 
 #dodecdeploy:
 #        build: ./dodecdeploy
@@ -24,14 +24,18 @@ dodecbuild:
 
 dodecrepo:
         build: ./dodecrepo
-        environment:
-                DODEC_POSTGRESADDR: postgres:5432
         links:
                 - postgres
+        environment:
+                PGUSER: dodec
+                PGPASSWORD: p@55123! #leave this blank to pass value from host
+                DODEC_POSTGRESADDR: postgres:5432
 
 postgres:
-        image: postgres
-
+        build: ./dodecrepo_db
+        environment:
+                PGUSER: dodec
+                PGPASSWORD: p@55123! #leave this blank to pass value from host
+                
 dockerregistry:
         image: registry
-

@@ -1,12 +1,5 @@
 package main
 
-import (
-	"github.com/jtakamine/dodecahedronci/logutil"
-	"net"
-	"net/rpc"
-	"net/rpc/jsonrpc"
-)
-
 type SaveBuildArgs struct {
 	UUID     string
 	AppName  string
@@ -24,12 +17,12 @@ func (rpcB *RPCBuild) Save(args SaveBuildArgs, success *bool) (err error) {
 		Artifact: args.Artifact,
 	}
 
-	err := addBuild(b)
+	err = addBuild(b)
 	if err != nil {
 		return err
 	}
 
-	*sucess = true
+	*success = true
 	return nil
 }
 

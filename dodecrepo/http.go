@@ -1,5 +1,7 @@
 package main
 
+/*
+
 import (
 	"encoding/json"
 	"fmt"
@@ -76,4 +78,4 @@ func httpHandlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, "add successful\n")
-}
+}*/
