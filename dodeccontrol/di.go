@@ -23,7 +23,7 @@ var rpcExecuteBuild = func(repoUrl string, appName string) (err error) {
 	}
 
 	var uuid string
-	err = c.Call("Build.Execute", args, &uuid)
+	err = c.Call("Builder.Execute", args, &uuid)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

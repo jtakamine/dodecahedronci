@@ -109,7 +109,7 @@ var rpcRegisterService = func() (err error) {
 	}
 
 	var success bool
-	err = c.Call("Service.Register", args, &success)
+	err = c.Call("ServiceRegistry.Register", args, &success)
 	if err != nil {
 		return err
 	}

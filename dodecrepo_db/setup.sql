@@ -1,4 +1,6 @@
-﻿CREATE TABLE IF NOT EXISTS task_type (
+﻿-- Tables
+
+CREATE TABLE IF NOT EXISTS task_type (
 	id		serial PRIMARY KEY,
 	code		varchar(128) NOT NULL UNIQUE,
 	description	text NOT NULL
@@ -31,3 +33,10 @@ CREATE TABLE IF NOT EXISTS task_attribute (
 	task_attribute_type_id 	integer NOT NULL REFERENCES task_attribute_type (id),
 	value 			text
 );
+
+
+-- Seed Data
+INSERT INTO task_type (code, description)
+	VALUES ('build', 'Dodec build task'),
+	VALUES ('deploy', 'Dodec deploy task'),
+	VALUES ('test', 'Dodec test task');

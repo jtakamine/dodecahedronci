@@ -1,35 +1,38 @@
 package main
 
-type SaveBuildArgs struct {
-	UUID     string
-	AppName  string
-	Version  string
-	Artifact string
-}
+import (
+	"database/sql"
+	"encoding/json"
+	_ "github.com/lib/pq"
+)
 
-type RPCBuild struct{}
+type RPCBuildRepo struct{}
 
-func (rpcB *RPCBuild) Save(args SaveBuildArgs, success *bool) (err error) {
-	b := Build{
-		UUID:     args.UUID,
-		AppName:  args.AppName,
-		Version:  args.Version,
-		Artifact: args.Artifact,
-	}
-
-	err = addBuild(b)
+func (rpcB *RPCBuildRepo) Save(b Build, success *bool) (err error) {
+	c, err := getConnStr()
 	if err != nil {
 		return err
 	}
+
+	db, err := sql.Open("postgres", c)
+	if err != nil {
+		return err
+	}
+
+	sqlFmt := `
+INSERT INTO task(task_type_id, uuid, artifact)
+	SELECT TOP 1 tt.id, '%s', '%s'
+	FROM task_type tt
+	WHERE tt.code = 'build'
+`
+	err := db.Exec("INSERT INTO task()")
 
 	*success = true
 	return nil
 }
 
-func (rpcB *RPCBuild) Get(uuid string, build *Build) (err error) {
+func (rpcB *RPCBuildRepo) Get(uuid string, b *Build) (err error) {
 	*build, err = getBuild(uuid)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }

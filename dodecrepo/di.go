@@ -8,16 +8,6 @@ import (
 	//"github.com/lib/pq"
 )
 
-var addBuild = func(b Build) (err error) {
-	fmt.Printf("TODO: save build to db--%s\n", b)
-	return nil
-}
-
-var getBuild = func(uuid string) (build Build, err error) {
-	fmt.Println("TODO: get build from db")
-	return Build{}, nil
-}
-
 var getConnStr = func() (connStr string, err error) {
 	missing := []string{}
 

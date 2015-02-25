@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/rpc"
@@ -8,9 +9,9 @@ import (
 	"strconv"
 )
 
-type RPCLog struct{}
+type RPCLogger struct{}
 
-func (rpcL *RPCLog) Write(log string, success *bool) (err error) {
+func (rpcL *RPCLogger) Write(log string, success *bool) (err error) {
 	msg, _, logType, taskID, src := parseLog(log)
 
 	ls, ok := logs[src]
@@ -32,16 +33,19 @@ func (rpcL *RPCLog) Write(log string, success *bool) (err error) {
 	return nil
 }
 
-type RegisterArgs struct {
+type RegisterServiceArgs struct {
 	Service  string
 	Endpoint string
 }
-type RPCService struct{}
 
-func (rpcS *RPCService) Register(args RegisterArgs, success *bool) (err error) {
+type RPCServiceRegistry struct{}
+
+func (rpcS *RPCServiceRegistry) Register(args RegisterServiceArgs, success *bool) (err error) {
 	switch args.Service {
 	case "build":
 		buildAddr = args.Endpoint
+	default:
+		return errors.New("Attempted to register unrecognized service: \"" + args.Service + "\"")
 	}
 
 	*success = true
@@ -49,12 +53,12 @@ func (rpcS *RPCService) Register(args RegisterArgs, success *bool) (err error) {
 }
 
 func rpcListen(port int) (err error) {
-	err = rpc.RegisterName("Log", &RPCLog{})
+	err = rpc.RegisterName("Logger", &RPCLogger{})
 	if err != nil {
 		return err
 	}
 
-	err = rpc.RegisterName("Service", &RPCService{})
+	err = rpc.RegisterName("ServiceRegistry", &RPCServiceRegistry{})
 	if err != nil {
 		return err
 	}

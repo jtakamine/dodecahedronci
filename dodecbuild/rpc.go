@@ -13,9 +13,9 @@ type ExecuteBuildArgs struct {
 	AppName string
 }
 
-type RPCBuild struct{}
+type RPCBuilder struct{}
 
-func (b *RPCBuild) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
+func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
 	*uuid = generateRandID(8)
 	writer := logutil.NewWriter("build", *uuid)
 
