@@ -10,6 +10,11 @@ I created this project to introduce myself to the following technologies/tools:
 * GitHub
 * Linux
 
+Architecture
+============
+
+![](arch.png)
+
 
 API Reference
 =============
