@@ -21,21 +21,24 @@ dodecbuild:
 #        links:
 #                - dodeccontrol
 #                - dodecrepo
+ 
+dockerregistry:
+        image: registry
 
 dodecrepo:
         build: ./dodecrepo
         links:
-                - postgres
+                - dodecrepodb
         environment:
                 PGUSER: dodec
                 PGPASSWORD: p@55123! #leave this blank to pass value from host
-                DODEC_POSTGRESADDR: postgres:5432
+                DODEC_REPODBADDR: dodecrepodb:5432
 
-postgres:
-        build: ./dodecrepo_db
+dodecrepodb:
+        build: ./dodecrepodb
         environment:
                 PGUSER: dodec
                 PGPASSWORD: p@55123! #leave this blank to pass value from host
-                
-dockerregistry:
-        image: registry
+        ports:
+                - 5432:5432
+               

@@ -13,7 +13,7 @@ var getConnStr = func() (connStr string, err error) {
 
 	userEnv := "PGUSER"
 	passEnv := "PGPASSWORD"
-	dbAddrEnv := "DODEC_POSTGRESADDR"
+	dbAddrEnv := "DODEC_REPODBADDR"
 
 	user := os.Getenv(userEnv)
 	if user == "" {

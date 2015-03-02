@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"net"
 	"net/rpc/jsonrpc"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -47,16 +48,38 @@ var buildDockerFile = func(dFile string, version string, writer *logutil.Writer)
 	return tag, nil
 }
 
-var saveBuild = func(appName string, version string, fFile figFile) (err error) {
-	data, err := yaml.Marshal(fFile.Config)
+var saveBuild = func(uuid string, appName string, version string, fFile figFile) (err error) {
+	fData, err := yaml.Marshal(fFile.Config)
 	if err != nil {
 		return err
 	}
-	artifactStr := string(data)
+	fYml := string(fData)
 
-	build := dodecregistry_API.Build{Artifact: artifactStr}
+	build := struct {
+		UUID     string
+		AppName  string
+		Version  string
+		Artifact string
+	}{
+		UUID:     uuid,
+		AppName:  appName,
+		Version:  version,
+		Artifact: fYml,
+	}
 
-	err = dodecregistry_API.PostBuild(appName, version, build, "http://dodecrepo:8000/")
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+	c := jsonrpc.NewClient(conn)
+
+	var success bool
+	err = c.Call("BuildRepo.Save", build, &success)
 	if err != nil {
 		return err
 	}

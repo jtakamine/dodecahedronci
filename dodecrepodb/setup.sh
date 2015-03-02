@@ -3,13 +3,15 @@
 
 echo "******INITIALIZING DATABASE******"
 
-echo "host all \"dodec\" 0.0.0.0/0 trust" >> /var/lib/postgresql/data/pg_hba.conf
+echo "host all \"$POSTGRES_USER\" 0.0.0.0/0 trust" >> /var/lib/postgresql/data/pg_hba.conf
 
 echo "starting postgres"
 gosu postgres pg_ctl -w start
 
-echo "initializing tables"
-gosu postgres psql -h localhost -p 5432 -d dodec -U postgres -a -f /tmp/setup.sql
+for f in /tmp/db/*; do
+	echo "executing: $f"
+	gosu postgres psql -h localhost -p 5432 -d $POSTGRES_USER -U $POSTGRES_USER -f $f
+done
 
 echo "stopping postgres"
 gosu postgres pg_ctl stop

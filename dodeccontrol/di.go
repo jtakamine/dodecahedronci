@@ -14,7 +14,7 @@ var rpcExecuteBuild = func(repoUrl string, appName string) (err error) {
 	}
 	c := jsonrpc.NewClient(conn)
 
-	args := &struct {
+	args := struct {
 		RepoUrl string
 		AppName string
 	}{

@@ -21,7 +21,7 @@ func main() {
 }
 
 var parseArgs = func() (port int) {
-	port = flag.IntVar(&port, "port", 80, "The port on which this service will listen")
+	flag.IntVar(&port, "port", 80, "The port on which this service will listen")
 	flag.Parse()
 	return port
 }

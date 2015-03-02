@@ -1,10 +1,36 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
+	"net"
+	"net/rpc"
+	"net/rpc/jsonrpc"
+	"strconv"
+	// "encoding/json"
 	_ "github.com/lib/pq"
 )
+
+func rpcListen(port int) (err error) {
+	err = rpc.RegisterName("BuildRepo", &RPCBuildRepo{})
+	if err != nil {
+		return err
+	}
+
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		return err
+	}
+
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			return err
+		}
+
+		go rpc.ServeCodec(jsonrpc.NewServerCodec(conn))
+	}
+
+	return nil
+}
 
 type RPCBuildRepo struct{}
 
@@ -14,25 +40,25 @@ func (rpcB *RPCBuildRepo) Save(b Build, success *bool) (err error) {
 		return err
 	}
 
-	db, err := sql.Open("postgres", c)
+	err = saveBuild(b, c)
 	if err != nil {
 		return err
 	}
-
-	sqlFmt := `
-INSERT INTO task(task_type_id, uuid, artifact)
-	SELECT TOP 1 tt.id, '%s', '%s'
-	FROM task_type tt
-	WHERE tt.code = 'build'
-`
-	err := db.Exec("INSERT INTO task()")
 
 	*success = true
 	return nil
 }
 
 func (rpcB *RPCBuildRepo) Get(uuid string, b *Build) (err error) {
-	*build, err = getBuild(uuid)
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*b, err = getBuild(uuid, c)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -33,7 +33,7 @@ func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
 }
 
 func rpcListen(port int) (err error) {
-	err = rpc.RegisterName("Build", &RPCBuild{})
+	err = rpc.RegisterName("Build", &RPCBuilder{})
 	if err != nil {
 		return err
 	}

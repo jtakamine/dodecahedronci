@@ -9,6 +9,11 @@ func main() {
 	port := parseArgs()
 	log.Printf("Listening on port %v\n", port)
 
+	err := rpcListen(port)
+	if err != nil {
+		panic("Error listening on TCP port: " + err.Error())
+	}
+
 	/*	err := ListenAndServe(":" + strconv.Itoa(port))
 		if err != nil {
 			log.Println("An error occurred while instantiating the service:\n", err)

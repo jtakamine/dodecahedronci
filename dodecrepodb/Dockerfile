@@ -1,6 +1,6 @@
 FROM postgres
 
-COPY setup.sql /tmp/setup.sql
+COPY db /tmp/db
 COPY setup.sh /docker-entrypoint-initdb.d/
 COPY docker-entrypoint-wrapper.sh /
 
