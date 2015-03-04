@@ -19,7 +19,7 @@ func TestMain(t *testing.T) {
 		return nil
 	}
 
-	saveBuild = func(app string, version string, fFile figFile) (err error) {
+	saveBuild = func(uuid string, appName string, version string, fFile figFile) (err error) {
 		fmt.Printf("**Mocked: Saved build. Fig file:%v\n", fFile.Config)
 		return nil
 	}
@@ -44,12 +44,12 @@ func testRPCExecute(t *testing.T, repoUrl string, dockerUser string, addr string
 	}
 	c := jsonrpc.NewClient(conn)
 
-	args := &BuildArgs{
+	args := &ExecuteBuildArgs{
 		RepoUrl: repoUrl,
 	}
 
 	var buildID string
-	err = c.Call("Build.Execute", args, &buildID)
+	err = c.Call("Builder.Execute", args, &buildID)
 	if err != nil {
 		t.Error(err)
 		return

@@ -8,32 +8,8 @@ import (
 	"strconv"
 )
 
-type ExecuteBuildArgs struct {
-	RepoUrl string
-	AppName string
-}
-
-type RPCBuilder struct{}
-
-func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
-	*uuid = generateRandID(8)
-	writer := logutil.NewWriter("build", *uuid)
-
-	repoDir, err := cloneOrUpdateGitRepo(args.RepoUrl, writer)
-	if err != nil {
-		return err
-	}
-
-	err = build(repoDir, *uuid, args.AppName, writer)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func rpcListen(port int) (err error) {
-	err = rpc.RegisterName("Build", &RPCBuilder{})
+	err = rpc.RegisterName("Builder", &RPCBuilder{})
 	if err != nil {
 		return err
 	}
@@ -50,6 +26,37 @@ func rpcListen(port int) (err error) {
 		}
 
 		go rpc.ServeCodec(jsonrpc.NewServerCodec(conn))
+	}
+
+	return nil
+}
+
+type ExecuteBuildArgs struct {
+	RepoUrl string
+	AppName string
+}
+
+type RPCBuilder struct{}
+
+func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
+	*uuid = generateRandID(8)
+	version := getNextVersion(args.AppName)
+
+	err = saveBuild(*uuid, args.AppName, version)
+	if err != nil {
+		return err
+	}
+
+	writer := logutil.NewWriter("build", *uuid)
+
+	repoDir, err := cloneOrUpdateGitRepo(args.RepoUrl, writer)
+	if err != nil {
+		return err
+	}
+
+	err = build(repoDir, *uuid, args.AppName, version, writer)
+	if err != nil {
+		return err
 	}
 
 	return nil

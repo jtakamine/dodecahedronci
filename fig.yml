@@ -2,15 +2,22 @@ dodeccontrol:
         build: ./dodeccontrol
         ports:
                 - "8000:8000"
+        links:
+                - dodecrepo
+        environment:
+                DODEC_REPOADDR: dodecrepo:9000
 
 dodecbuild:
         build: ./dodecbuild
         links:
                 - dodeccontrol
                 - dodecrepo
+                - dockerregistry
         environment:
-                STDROUTE_DEST: dodeccontrol:9000
+                DODEC_CONTROLADDR: dodeccontrol:9000
                 DODEC_REPOADDR: dodecrepo:9000
+                DOCKER_REGISTRYADDR: dockerregistry:5000
+                DOCKER_DAEMON_ARGS: "--insecure-registry dockerregistry:5000"
         privileged: true
 
 #dodecdeploy:
@@ -39,6 +46,3 @@ dodecrepodb:
         environment:
                 PGUSER: dodec
                 PGPASSWORD: p@55123! #leave this blank to pass value from host
-        ports:
-                - 5432:5432
-               

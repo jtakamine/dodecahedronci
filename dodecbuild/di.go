@@ -15,24 +15,27 @@ import (
 )
 
 var buildDockerFile = func(dFile string, version string, writer *logutil.Writer) (tag string, err error) {
-	//TODO: include private registry specification (and user?)
-	dockerRegistryUrl := "registry:5000"
-	dockerUser := "jtakamine"
+	dockerRegistryAddr := os.Getenv("DOCKER_REGISTRYADDR")
+	if dockerRegistryAddr == "" {
+		return "", errors.New("Missing environment variable: \"DOCKER_REGISTRYADDR\"")
+	}
 
 	registryPrefix := ""
-	if dockerRegistryUrl != "" {
-		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "http://")
-		dockerRegistryUrl = strings.TrimPrefix(dockerRegistryUrl, "https://")
-		registryPrefix = dockerRegistryUrl + "/"
+	if dockerRegistryAddr != "" {
+		registryPrefix = dockerRegistryAddr + "/"
 	}
+
+	dockerUser := "" //For now, do not provide a user specification
 	userPrefix := ""
 	if dockerUser != "" {
 		userPrefix = dockerUser + "/"
 	}
+
 	versionSuffix := ""
 	if version != "" {
 		versionSuffix = ":" + version
 	}
+
 	tag = registryPrefix + userPrefix + generateRandID(8) + versionSuffix
 
 	cmd := exec.Command("docker", "build", "-t", tag, ".")
@@ -48,23 +51,15 @@ var buildDockerFile = func(dFile string, version string, writer *logutil.Writer)
 	return tag, nil
 }
 
-var saveBuild = func(uuid string, appName string, version string, fFile figFile) (err error) {
-	fData, err := yaml.Marshal(fFile.Config)
-	if err != nil {
-		return err
-	}
-	fYml := string(fData)
-
+var saveBuild = func(uuid string, appName string, version string) (err error) {
 	build := struct {
-		UUID     string
-		AppName  string
-		Version  string
-		Artifact string
+		UUID    string
+		AppName string
+		Version string
 	}{
-		UUID:     uuid,
-		AppName:  appName,
-		Version:  version,
-		Artifact: fYml,
+		UUID:    uuid,
+		AppName: appName,
+		Version: version,
 	}
 
 	addr := os.Getenv("DODEC_REPOADDR")
@@ -80,6 +75,41 @@ var saveBuild = func(uuid string, appName string, version string, fFile figFile)
 
 	var success bool
 	err = c.Call("BuildRepo.Save", build, &success)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var saveBuildArtifact = func(uuid string, fFile figFile) (err error) {
+	fData, err := yaml.Marshal(fFile.Config)
+	if err != nil {
+		return err
+	}
+	fYml := string(fData)
+
+	args := struct {
+		Artifact  string
+		BuildUUID string
+	}{
+		Artifact:  fYml,
+		BuildUUID: uuid,
+	}
+
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+	c := jsonrpc.NewClient(conn)
+
+	var success bool
+	err = c.Call("ArtifactRepo.Save", args, &success)
 	if err != nil {
 		return err
 	}

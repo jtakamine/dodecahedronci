@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
@@ -57,15 +58,23 @@ func handlePostBuild(w http.ResponseWriter, r *http.Request) {
 func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
 }
+
 func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic("Error reading request body: " + err.Error())
 	}
 
-	repoUrl, appName, err := parseGitHubRequest(data)
+	repoUrl, appName, description, err := parseGitHubRequest(data)
 	if err != nil {
 		panic("Error parsing GitHub request: " + err.Error())
+	}
+
+	fmt.Printf("appname = %s\n", appName)
+
+	err = rpcAddApplication(appName, description)
+	if err != nil {
+		panic("Error adding application: " + err.Error())
 	}
 
 	err = rpcExecuteBuild(repoUrl, appName)

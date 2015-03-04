@@ -34,7 +34,7 @@ RUN go get github.com/jtakamine/dodecahedronci/logutil #15.02.13.21
 ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecbuild
 RUN go install github.com/jtakamine/dodecahedronci/dodecbuild
 
-EXPOSE 8000
+EXPOSE 9000
 
 # Run application
-CMD /usr/local/bin/wrapdocker & dodecbuild -port 9000 | stdroute -dest $STDROUTE_DEST -method "Logger.Write"
+CMD /usr/local/bin/wrapdocker & dodecbuild -port 9000 | stdroute -dest $DODEC_CONTROLADDR -method "Logger.Write"

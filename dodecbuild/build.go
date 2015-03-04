@@ -34,15 +34,10 @@ func generateRandID(length int) string {
 	return hex.EncodeToString(id)
 }
 
-func build(repoDir string, uuid string, appName string, writer *logutil.Writer) (err error) {
+func build(repoDir string, uuid string, appName string, version string, writer *logutil.Writer) (err error) {
 	w := writer.WriteType
 	wIn := writer.Indent
 	wOut := writer.Outdent
-
-	w("Retrieving next version number...", logutil.Info)
-	version := getNextVersion(appName)
-
-	w("Retrieved version number: "+version, logutil.Info)
 
 	w("Searching for fig files in "+repoDir+"...", logutil.Info)
 	files, err := findFigFiles(repoDir)
@@ -105,14 +100,9 @@ func build(repoDir string, uuid string, appName string, writer *logutil.Writer) 
 			w("Replaced \"build\" node with \"image\" node in Fig file.", logutil.Verbose)
 		}
 		wOut()
-
-		w("Posting the build to the Dodec Registry...", logutil.Verbose)
-		err = saveBuild(uuid, appName, version, fFile)
-		if err != nil {
-			w("Error encountered while posting the build to the Dodec Registry: "+err.Error(), logutil.Error)
-			return err
-		}
-		w("Posted the build to the Dodec Registry.", logutil.Verbose)
+		w("Saving build artifact...", logutil.Verbose)
+		err = saveBuildArtifact(uuid, fFile)
+		w("Saved build artifact.", logutil.Verbose)
 	}
 	wOut()
 	w("Done looping through "+strconv.Itoa(len(fFiles))+" Fig files.", logutil.Info)

@@ -1,21 +1,18 @@
 FROM golang
 
-# Install stdroute
-RUN go get github.com/jtakamine/stdroute
-RUN go install github.com/jtakamine/stdroute
-
 # Get External go packages
 RUN go get github.com/lib/pq
 
 # Get Internal go packages
-RUN go get github.com/jtakamine/dodecahedronci/logutil
+RUN go get github.com/jtakamine/dodecahedronci/logutil #15.03.03.15
+
+ADD . /tmp/
 
 # Get source and install application
-ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecregistry
-WORKDIR /go/src/github.com/jtakamine/dodecahedronci/dodecregistry
-RUN go install
+ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecrepo
+RUN go install github.com/jtakamine/dodecahedronci/dodecrepo
 
-EXPOSE 8000
+EXPOSE 9000
 
 # Run application
-CMD dodecregistry -port 9000 | stdroute -dest $STDROUTE_DEST -method "Log.Write"
+CMD dodecrepo -port 9000

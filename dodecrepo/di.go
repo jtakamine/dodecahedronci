@@ -41,5 +41,8 @@ var getConnStr = func() (connStr string, err error) {
 		return "", errors.New(msg)
 	}
 
-	return fmt.Sprintf("user=%s password=%s host=%s port=%s sslmode=disable"), nil
+	host := dbAddrParts[0]
+	port := dbAddrParts[1]
+
+	return fmt.Sprintf("user=%s password=%s host=%s port=%s sslmode=disable", user, pass, host, port), nil
 }

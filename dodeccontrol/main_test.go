@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"net/rpc/jsonrpc"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -22,7 +24,27 @@ func TestMain(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	testWebhook(t, "https://github.com/progrium/logspout.git", "http://localhost:8000/github/builds")
+	localhost := "localhost"
+
+	dockerHost := os.Getenv("DOCKER_HOST")
+	if dockerHost != "" {
+		//If using boot2docker, we can't use "localhost" to connect to container
+		parts := strings.Split(dockerHost, "://")
+		if len(parts) != 2 {
+			t.Error("Could not parse environment variable DOCKER_HOST")
+			return
+		}
+
+		parts = strings.Split(parts[1], ":")
+		if len(parts) != 2 {
+			t.Error("Could not parse environment variable DOCKER_HOST")
+			return
+		}
+
+		localhost = parts[0]
+	}
+
+	testWebhook(t, "https://github.com/jtakamine/mockrepo.git", "http://"+localhost+":8000/github/builds")
 
 	time.Sleep(time.Second * 15)
 }
@@ -36,8 +58,8 @@ func TestMainShort(t *testing.T) {
 		return 8000, 9000
 	}
 
-	rpcExecuteBuild = func(repoUrl string) (err error) {
-		fmt.Printf("***Mocked: RPC Execute Build. Repo Url: %s\n", repoUrl)
+	rpcExecuteBuild = func(repoUrl string, appName string) (err error) {
+		fmt.Printf("***Mocked: RPC Execute Build. Repo Url: %s; App Name: %s;\n", repoUrl, appName)
 		return nil
 	}
 
@@ -103,7 +125,8 @@ func testWebhook(t *testing.T, cloneUrl string, targetUrl string) {
 	var req *http.Request
 	var resp *http.Response
 
-	payload := "{\"repository\":{\"id\":1234567,\"ssh_url\":\"git@github.com:jtakamine/dodecahedronci.git\", \"clone_url\":\"" + cloneUrl + "\"}}"
+	payload := "{\"repository\":{\"id\":1234567, \"name\":\"myapp\", \"description\":\"application description\",  \"clone_url\":\"" + cloneUrl + "\"}}"
+
 	req, err = http.NewRequest("POST", targetUrl, bytes.NewBufferString(payload))
 	req.Header.Set("Content-Type", "application/json")
 
