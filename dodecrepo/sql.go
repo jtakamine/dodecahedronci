@@ -2,7 +2,8 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
+	"fmt"
+	"github.com/lib/pq"
 )
 
 func getDB(connStr string) (db *sql.DB, err error) {
@@ -36,6 +37,31 @@ INSERT INTO application (name, description)
 	}
 
 	return nil
+}
+
+func getApplication(name string, connStr string) (a Application, err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return Application{}, err
+	}
+
+	s := `
+SELECT name, description
+FROM application
+WHERE name = $1
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return Application{}, err
+	}
+
+	err = st.QueryRow(name).Scan(&a.Name, &a.Description)
+	if err != nil {
+		return Application{}, err
+	}
+
+	return a, nil
 }
 
 func saveBuild(uuid string, appName string, version string, connStr string) (err error) {
@@ -96,32 +122,6 @@ INSERT INTO task_attribute (task_id, task_attribute_type_id, value)
 	return nil
 }
 
-func recordCompletion(uuid string, success bool, connStr string) (err error) {
-	db, err := getDB(connStr)
-	if err != nil {
-		return err
-	}
-
-	s := `
-UPDATE task
-	SET completed = true,
-	success = $1
-WHERE uuid = $2
-`
-
-	st, err := db.Prepare(s)
-	if err != nil {
-		return err
-	}
-
-	_, err = st.Exec(success, uuid)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func getBuild(uuid string, connStr string) (b BuildDetails, err error) {
 	db, err := getDB(connStr)
 	if err != nil {
@@ -135,7 +135,7 @@ FROM task t
 	LEFT OUTER JOIN task_attribute_type tat on tat.id = tatt.task_attribute_type_id
 	LEFT OUTER JOIN task_artifact tart on tart.task_id = t.id
 	LEFT OUTER JOIN application a on a.id = t.application_id
-WHERE uuid = $1
+WHERE t.uuid = $1
 	AND tat.code = 'version'
 `
 
@@ -144,9 +144,23 @@ WHERE uuid = $1
 		return BuildDetails{}, err
 	}
 
-	err = st.QueryRow(uuid).Scan(&b.UUID, &b.AppName, &b.Version, &b.Started, &b.Completed, &b.Success, &b.Artifact)
+	nCompleted := pq.NullTime{}
+	nSuccess := sql.NullBool{}
+	nArtifact := sql.NullString{}
+
+	err = st.QueryRow(uuid).Scan(&b.UUID, &b.AppName, &b.Version, &b.Started, &nCompleted, &nSuccess, &nArtifact)
 	if err != nil {
 		return BuildDetails{}, err
+	}
+
+	if nCompleted.Valid {
+		b.Completed = nCompleted.Time
+	}
+	if nSuccess.Valid {
+		b.Success = nSuccess.Bool
+	}
+	if nArtifact.Valid {
+		b.Artifact = nArtifact.String
 	}
 
 	return b, nil
@@ -154,6 +168,9 @@ WHERE uuid = $1
 
 func getBuilds(appName string, connStr string) (builds []Build, err error) {
 	db, err := getDB(connStr)
+	if err != nil {
+		return nil, fmt.Errorf("getting database: %s", err.Error())
+	}
 
 	s := `
 SELECT t.uuid, a.name, tatt.value
@@ -161,8 +178,112 @@ FROM task t
 	LEFT OUTER JOIN task_attribute tatt on tatt.task_id = t.id
 	LEFT OUTER JOIN task_attribute_type tat on tat.id = tatt.task_attribute_type_id
 	LEFT OUTER JOIN application a on a.id = t.application_id
-WHERE a.name = $1
-ORDER BY tatt.value
+WHERE a.name = $1 OR '' = $1
+ORDER BY t.id
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return nil, fmt.Errorf("preparing sql statement: %s", err.Error())
+	}
+
+	rows, err := st.Query(appName)
+	if err != nil {
+		return nil, fmt.Errorf("executing sql query: %s", err.Error())
+	}
+
+	builds = make([]Build, 0)
+	for rows.Next() {
+		b := Build{}
+		err = rows.Scan(&b.UUID, &b.AppName, &b.Version)
+		if err != nil {
+			return nil, fmt.Errorf("scanning row: %s", err.Error())
+		}
+
+		builds = append(builds, b)
+	}
+
+	return builds, nil
+}
+
+func saveDeploy(deployUUID string, buildUUID string, appName string, connStr string) (err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return err
+	}
+
+	s := `
+INSERT INTO task(parent_id, task_type_id, application_id, uuid)
+	SELECT $1, tt.id, a.id, $2
+	FROM task_type tt
+		CROSS JOIN application a
+	WHERE tt.code = 'deploy'
+		AND a.name = $3
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return err
+	}
+
+	_, err = st.Exec(buildUUID, deployUUID, appName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getDeploy(uuid string, connStr string) (d DeployDetails, err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return DeployDetails{}, err
+	}
+
+	s := `
+SELECT t.uuid, a.name, t.started, t.completed, t.success, t2.uuid
+FROM task t
+	LEFT OUTER JOIN task t2 on t2.id = t.parent_id
+	LEFT OUTER JOIN application a on a.id = t.application_id
+WHERE t.uuid = $1
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return DeployDetails{}, err
+	}
+
+	nCompleted := pq.NullTime{}
+	nSuccess := sql.NullBool{}
+
+	err = st.QueryRow(uuid).Scan(&d.UUID, &d.AppName, &d.Started, &nCompleted, &nSuccess, &d.BuildUUID)
+	if err != nil {
+		return DeployDetails{}, err
+	}
+
+	if nCompleted.Valid {
+		d.Completed = nCompleted.Time
+	}
+	if nSuccess.Valid {
+		d.Success = nSuccess.Bool
+	}
+
+	return d, nil
+}
+
+func getDeploys(appName string, connStr string) (deploys []Deploy, err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	s := `
+SELECT t.uuid, a.name, t2.uuid
+FROM task t
+	LEFT OUTER JOIN task t2 on t2.id = t.parent_id
+	LEFT OUTER JOIN application a on a.id = t.application_id
+WHERE a.name = $1 OR '' = $1
+ORDER BY t.id
 `
 
 	st, err := db.Prepare(s)
@@ -173,16 +294,16 @@ ORDER BY tatt.value
 	rows, err := st.Query(appName)
 
 	for rows.Next() {
-		b := Build{}
-		err = rows.Scan(&b.UUID, &b.AppName, &b.Version)
+		d := Deploy{}
+		err = rows.Scan(&d.UUID, &d.AppName, &d.BuildUUID)
 		if err != nil {
 			return nil, err
 		}
 
-		builds = append(builds, b)
+		deploys = append(deploys, d)
 	}
 
-	return builds, err
+	return deploys, err
 }
 
 func saveArtifact(artifact string, buildUUID string, artifactType string, connStr string) (err error) {
@@ -206,6 +327,32 @@ INSERT INTO task_artifact (task_artifact_type_id, task_id, artifact)
 	}
 
 	_, err = st.Exec(artifact, "build_artifact", buildUUID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func recordCompletion(uuid string, success bool, connStr string) (err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return err
+	}
+
+	s := `
+UPDATE task
+	SET completed = now(),
+	success = $1
+WHERE uuid = $2
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return err
+	}
+
+	_, err = st.Exec(success, uuid)
 	if err != nil {
 		return err
 	}

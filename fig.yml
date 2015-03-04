@@ -20,14 +20,18 @@ dodecbuild:
                 DOCKER_DAEMON_ARGS: "--insecure-registry dockerregistry:5000"
         privileged: true
 
-#dodecdeploy:
-#        build: ./dodecdeploy
-#        environment:
-#               STDROUTE_DEST: dodeccontrol:9000
-#               DODEC_REPOADDR: dodecrepo:9000
-#        links:
-#                - dodeccontrol
-#                - dodecrepo
+dodecdeploy:
+        build: ./dodecdeploy
+        links:
+                - dodeccontrol
+                - dodecrepo
+                - dockerregistry
+        environment:
+               DODEC_CONTROLADDR: dodeccontrol:9000
+               DODEC_REPOADDR: dodecrepo:9000
+               DOCKER_REGISTRYADDR: dockerregistry:5000
+               DOCKER_DAEMON_ARGS: "--insecure-registry dockerregistry:5000"
+        privileged: true
  
 dockerregistry:
         image: registry

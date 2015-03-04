@@ -46,7 +46,7 @@ func TestMain(t *testing.T) {
 
 	testWebhook(t, "https://github.com/jtakamine/mockrepo.git", "http://"+localhost+":8000/github/builds")
 
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Second * 60)
 }
 
 func TestMainShort(t *testing.T) {
@@ -58,9 +58,9 @@ func TestMainShort(t *testing.T) {
 		return 8000, 9000
 	}
 
-	rpcExecuteBuild = func(repoUrl string, appName string) (err error) {
+	rpcExecuteBuild = func(repoUrl string, appName string) (uuid string, err error) {
 		fmt.Printf("***Mocked: RPC Execute Build. Repo Url: %s; App Name: %s;\n", repoUrl, appName)
-		return nil
+		return "1234mockuid567", nil
 	}
 
 	go main()

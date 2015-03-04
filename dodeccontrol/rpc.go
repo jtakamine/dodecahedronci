@@ -72,6 +72,8 @@ func (rpcS *RPCServiceRegistry) Register(args RegisterServiceArgs, success *bool
 	switch args.Service {
 	case "build":
 		buildAddr = args.Endpoint
+	case "deploy":
+		deployAddr = args.Endpoint
 	default:
 		return errors.New("Attempted to register unrecognized service: \"" + args.Service + "\"")
 	}

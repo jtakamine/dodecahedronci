@@ -117,6 +117,34 @@ var saveBuildArtifact = func(uuid string, fFile figFile) (err error) {
 	return nil
 }
 
+var recordCompletion = func(uuid string, success bool) (err error) {
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+	c := jsonrpc.NewClient(conn)
+
+	args := struct {
+		UUID    string
+		Success bool
+	}{
+		UUID:    uuid,
+		Success: success,
+	}
+
+	err = c.Call("TaskRepo.RecordCompletion", args, &success)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var pushDockerImage = func(tag string, writer *logutil.Writer) (err error) {
 	cmd := exec.Command("docker", "push", tag)
 	cmd.Stdout = writer.CreateWriter(logutil.Verbose)
@@ -132,6 +160,11 @@ var pushDockerImage = func(tag string, writer *logutil.Writer) (err error) {
 }
 
 var rpcRegisterService = func() (err error) {
+	controlAddr := os.Getenv("DODEC_CONTROLADDR")
+	if controlAddr == "" {
+		return errors.New("Missing environment variable: DODEC_CONTROLADDR")
+	}
+
 	iface, err := net.InterfaceByName("eth0")
 	if err != nil {
 		return err
@@ -147,7 +180,7 @@ var rpcRegisterService = func() (err error) {
 
 	ip := strings.Split(addrs[0].String(), "/")[0]
 
-	conn, err := net.DialTimeout("tcp", "dodeccontrol:9000", time.Second)
+	conn, err := net.DialTimeout("tcp", controlAddr, time.Second)
 	if err != nil {
 		return err
 	}

@@ -1,25 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 )
 
-/*
-	GET /info
-	POST /build
-	POST /build/github
-	GET /build/(id)
-	GET /build/(id)/logs
-	POST /release
-	GET /release/(id)
-	POST /deploy
-	GET /deploy/(id)
-	GET /deploy/(id)/logs
-*/
 func httpListen(port int) {
 	r := mux.NewRouter()
 
@@ -28,11 +18,8 @@ func httpListen(port int) {
 	r.HandleFunc("/builds", handleGetBuilds).Methods("GET")
 	r.HandleFunc("/builds", handlePostBuild).Methods("POST")
 	r.HandleFunc("/builds/{id}", handleGetBuild).Methods("GET")
-	r.HandleFunc("/github/builds", handlePostGitHubBuild).Methods("POST")
 
-	r.HandleFunc("/releases", handleGetReleases).Methods("GET")
-	r.HandleFunc("/releases", handlePostRelease).Methods("POST")
-	r.HandleFunc("/releases/{id}", handleGetRelease).Methods("GET")
+	r.HandleFunc("/github/builds", handlePostGitHubBuild).Methods("POST")
 
 	r.HandleFunc("/deploys", handleGetDeploys).Methods("GET")
 	r.HandleFunc("/deploys", handlePostDeploy).Methods("POST")
@@ -50,7 +37,18 @@ func handleGetInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetBuilds(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	appName := r.URL.Query().Get("appname")
+
+	bs, err := rpcGetBuilds(appName)
+	if err != nil {
+		panic("Error getting builds: " + err.Error())
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(bs)
+	if err != nil {
+		panic("Error encoding response: " + err.Error())
+	}
 }
 func handlePostBuild(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
@@ -70,27 +68,41 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 		panic("Error parsing GitHub request: " + err.Error())
 	}
 
-	fmt.Printf("appname = %s\n", appName)
-
-	err = rpcAddApplication(appName, description)
-	if err != nil {
-		panic("Error adding application: " + err.Error())
+	app, err := rpcGetApplication(appName)
+	if app.Name == "" {
+		err = rpcAddApplication(appName, description)
+		if err != nil {
+			panic("Error adding application: " + err.Error())
+		}
 	}
 
-	err = rpcExecuteBuild(repoUrl, appName)
+	buildUUID, err := rpcExecuteBuild(repoUrl, appName)
 	if err != nil {
 		panic("Error executing RPC Build Execute: " + err.Error())
 	}
-}
 
-func handleGetReleases(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
-}
-func handlePostRelease(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
-}
-func handleGetRelease(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	go func() {
+		for {
+			b, err := rpcGetBuild(buildUUID)
+			if err != nil {
+				panic(err)
+			}
+
+			zeroTime := time.Time{}
+			if !b.Completed.Equal(zeroTime) {
+				break
+			}
+
+			time.Sleep(time.Second * 5)
+		}
+
+		deployUUID, err := rpcExecuteDeploy(buildUUID)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Fprintf(w, "{buildUUID: \"%s\"; deployUUID: \"%s\"}", buildUUID, deployUUID)
+	}()
 }
 
 func handleGetDeploys(w http.ResponseWriter, r *http.Request) {

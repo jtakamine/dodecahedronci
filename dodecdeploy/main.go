@@ -3,18 +3,22 @@ package main
 import (
 	"flag"
 	"log"
-	"strconv"
 )
 
 func main() {
 	port := parseArgs()
 	log.Printf("Listening on port %v\n", port)
 
-	err := ListenAndServe(":" + strconv.Itoa(port))
+	log.Println("Here1")
+	err := rpcRegisterService()
 	if err != nil {
-		log.Println("An error occurred while instantiating the service:\n", err)
-	} else {
-		log.Println("Server exited.")
+		panic("Error registering with controller: " + err.Error())
+	}
+	log.Println("here2")
+
+	err = rpcListen(port)
+	if err != nil {
+		panic("Error listening on TCP port: " + err.Error())
 	}
 }
 

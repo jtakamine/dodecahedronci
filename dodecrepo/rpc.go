@@ -1,26 +1,36 @@
 package main
 
 import (
+	"fmt"
 	_ "github.com/lib/pq"
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"strconv"
-	"time"
 )
 
 func rpcListen(port int) (err error) {
+	err = rpc.RegisterName("AppRepo", &RPCApplicationRepo{})
+	if err != nil {
+		return err
+	}
+
 	err = rpc.RegisterName("BuildRepo", &RPCBuildRepo{})
 	if err != nil {
 		return err
 	}
 
-	err = rpc.RegisterName("ArtifactRepo", &RPCArtifactRepo{})
+	err = rpc.RegisterName("DeployRepo", &RPCDeployRepo{})
 	if err != nil {
 		return err
 	}
 
-	err = rpc.RegisterName("AppRepo", &RPCApplicationRepo{})
+	err = rpc.RegisterName("TaskRepo", &RPCTaskRepo{})
+	if err != nil {
+		return err
+	}
+
+	err = rpc.RegisterName("ArtifactRepo", &RPCArtifactRepo{})
 	if err != nil {
 		return err
 	}
@@ -42,39 +52,9 @@ func rpcListen(port int) (err error) {
 	return nil
 }
 
-type Application struct {
-	Name        string
-	Description string
-}
-
-type Build struct {
-	UUID    string
-	AppName string
-	Version string
-}
-
-type TaskCompletionInfo struct {
-	UUID    string
-	Success bool
-}
-
-type BuildDetails struct {
-	Build
-	Started   time.Time
-	Completed time.Time
-	Success   bool
-	Artifact  string
-}
-
-type Artifact struct {
-	Artifact  string
-	Type      string
-	BuildUUID string
-}
-
 type RPCApplicationRepo struct{}
 
-func (rpcA *RPCApplicationRepo) Save(a Application, success *bool) (err error) {
+func (*RPCApplicationRepo) Save(a Application, success *bool) (err error) {
 	c, err := getConnStr()
 	if err != nil {
 		return err
@@ -89,9 +69,23 @@ func (rpcA *RPCApplicationRepo) Save(a Application, success *bool) (err error) {
 	return nil
 }
 
+func (*RPCApplicationRepo) Get(name string, a *Application) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*a, err = getApplication(name, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type RPCBuildRepo struct{}
 
-func (rpcB *RPCBuildRepo) Save(b Build, success *bool) (err error) {
+func (*RPCBuildRepo) Save(b Build, success *bool) (err error) {
 	c, err := getConnStr()
 	if err != nil {
 		return err
@@ -106,7 +100,81 @@ func (rpcB *RPCBuildRepo) Save(b Build, success *bool) (err error) {
 	return nil
 }
 
-func (rpcB *RPCBuildRepo) RecordCompletion(tci TaskCompletionInfo, success *bool) (err error) {
+func (*RPCBuildRepo) Get(uuid string, b *BuildDetails) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*b, err = getBuild(uuid, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (*RPCBuildRepo) GetAll(appName string, bs *[]Build) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return fmt.Errorf("getting connection string: %s", err.Error())
+	}
+
+	*bs, err = getBuilds(appName, c)
+	if err != nil {
+		return fmt.Errorf("getting builds from database: %s", err.Error())
+	}
+
+	return nil
+}
+
+type RPCDeployRepo struct{}
+
+func (*RPCDeployRepo) Save(d Deploy, success *bool) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	err = saveDeploy(d.UUID, d.BuildUUID, d.AppName, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (*RPCDeployRepo) Get(uuid string, d *DeployDetails) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*d, err = getDeploy(uuid, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (*RPCDeployRepo) GetAll(appName string, ds *[]Deploy) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*ds, err = getDeploys(appName, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type RPCTaskRepo struct{}
+
+func (*RPCTaskRepo) RecordCompletion(tci TaskCompletionInfo, success *bool) (err error) {
 	c, err := getConnStr()
 	if err != nil {
 		return err
@@ -121,37 +189,9 @@ func (rpcB *RPCBuildRepo) RecordCompletion(tci TaskCompletionInfo, success *bool
 	return nil
 }
 
-func (rpcB *RPCBuildRepo) Get(uuid string, b *BuildDetails) (err error) {
-	c, err := getConnStr()
-	if err != nil {
-		return err
-	}
-
-	*b, err = getBuild(uuid, c)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (rpcB *RPCBuildRepo) GetAll(appName string, bs *[]Build) (err error) {
-	c, err := getConnStr()
-	if err != nil {
-		return err
-	}
-
-	*bs, err = getBuilds(appName, c)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type RPCArtifactRepo struct{}
 
-func (rpcA *RPCArtifactRepo) Save(a Artifact, success *bool) (err error) {
+func (*RPCArtifactRepo) Save(a Artifact, success *bool) (err error) {
 	c, err := getConnStr()
 	if err != nil {
 		return err

@@ -13,6 +13,13 @@ I created this project to introduce myself to the following technologies/tools:
 Architecture
 ============
 
+DodecahedronCI is composed of 6 microservices:
+* [dodeccontrol](dodeccontrol/)
+* [dodecbuild](dodecbuild/)
+* [dodecdeploy](dodecdeploy/)
+* [dockerregistry](https://github.com/docker/docker-registry)
+* [dodecrepo](dodecrepo/)
+* [dodecrepodb](dodecrepodb/)
 ![](arch.png)
 
 

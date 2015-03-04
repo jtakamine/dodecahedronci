@@ -38,7 +38,7 @@ type ExecuteBuildArgs struct {
 
 type RPCBuilder struct{}
 
-func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
+func (*RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
 	*uuid = generateRandID(8)
 	version := getNextVersion(args.AppName)
 
@@ -47,17 +47,23 @@ func (b *RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
 		return err
 	}
 
-	writer := logutil.NewWriter("build", *uuid)
+	go func() {
+		writer := logutil.NewWriter("build", *uuid)
 
-	repoDir, err := cloneOrUpdateGitRepo(args.RepoUrl, writer)
-	if err != nil {
-		return err
-	}
+		repoDir, err := cloneOrUpdateGitRepo(args.RepoUrl, writer)
+		if err != nil {
+			recordCompletion(*uuid, false)
+			return
+		}
 
-	err = build(repoDir, *uuid, args.AppName, version, writer)
-	if err != nil {
-		return err
-	}
+		err = build(repoDir, *uuid, args.AppName, version, writer)
+		if err != nil {
+			recordCompletion(*uuid, false)
+			return
+		}
+
+		recordCompletion(*uuid, true)
+	}()
 
 	return nil
 }
