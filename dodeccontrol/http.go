@@ -54,7 +54,18 @@ func handlePostBuild(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
 }
 func handleGetBuild(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	vars := mux.Vars(r)
+
+	b, err := rpcGetBuild(vars["id"])
+	if err != nil {
+		panic("Error getting build: " + err.Error())
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(b)
+	if err != nil {
+		panic("Error encoding response: " + err.Error())
+	}
 }
 
 func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
@@ -106,13 +117,35 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetDeploys(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	appName := r.URL.Query().Get("appname")
+
+	ds, err := rpcGetDeploys(appName)
+	if err != nil {
+		panic("Error getting deploys: " + err.Error())
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(ds)
+	if err != nil {
+		panic("Error encoding response: " + err.Error())
+	}
 }
 func handlePostDeploy(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
 }
 func handleGetDeploy(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	vars := mux.Vars(r)
+
+	d, err := rpcGetDeploy(vars["id"])
+	if err != nil {
+		panic("Error getting build: " + err.Error())
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(d)
+	if err != nil {
+		panic("Error encoding response: " + err.Error())
+	}
 }
 
 func handleGetLogs(w http.ResponseWriter, r *http.Request) {

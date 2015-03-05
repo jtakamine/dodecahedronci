@@ -175,10 +175,12 @@ func getBuilds(appName string, connStr string) (builds []Build, err error) {
 	s := `
 SELECT t.uuid, a.name, tatt.value
 FROM task t
+	LEFT OUTER JOIN task_type tt on tt.id = t.task_type_id
 	LEFT OUTER JOIN task_attribute tatt on tatt.task_id = t.id
 	LEFT OUTER JOIN task_attribute_type tat on tat.id = tatt.task_attribute_type_id
 	LEFT OUTER JOIN application a on a.id = t.application_id
-WHERE a.name = $1 OR '' = $1
+WHERE (a.name = $1 OR '' = $1)
+	AND tt.code = 'build'
 ORDER BY t.id
 `
 
@@ -211,6 +213,8 @@ func saveDeploy(deployUUID string, buildUUID string, appName string, connStr str
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("deployUUID: %s; buildUUID: %s; appName: %s;\n", deployUUID, buildUUID, appName)
 
 	s := `
 INSERT INTO task(parent_id, task_type_id, application_id, uuid)
@@ -283,9 +287,11 @@ func getDeploys(appName string, connStr string) (deploys []Deploy, err error) {
 	s := `
 SELECT t.uuid, a.name, t2.uuid
 FROM task t
+	LEFT OUTER JOIN task_type tt on tt.id = t.task_type_id
 	LEFT OUTER JOIN task t2 on t2.id = t.parent_id
 	LEFT OUTER JOIN application a on a.id = t.application_id
-WHERE a.name = $1 OR '' = $1
+WHERE (a.name = $1 OR '' = $1)
+	AND tt.code = 'deploy'
 ORDER BY t.id
 `
 

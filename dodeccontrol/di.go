@@ -161,7 +161,7 @@ var rpcGetDeploy = func(uuid string) (d DeployDetails, err error) {
 	return d, nil
 }
 
-var rpcGetDeploys = func(appName string) (ds []DeployDetails, err error) {
+var rpcGetDeploys = func(appName string) (ds []Deploy, err error) {
 	addr := os.Getenv("DODEC_REPOADDR")
 	if addr == "" {
 		return nil, errors.New("Missing environment variable: DODEC_REPOADDR")

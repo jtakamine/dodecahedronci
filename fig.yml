@@ -50,3 +50,6 @@ dodecrepodb:
         environment:
                 PGUSER: dodec
                 PGPASSWORD: p@55123! #leave this blank to pass value from host
+        ports:
+                - "5432:5432" #exposed for debugging purposes
+        

@@ -98,13 +98,13 @@ var rpcSaveDeploy = func(deployUUID string, buildUUID string, appName string) (e
 	c := jsonrpc.NewClient(conn)
 
 	d := struct {
-		deployUUID string
-		buildUUID  string
-		AppName    string
+		UUID      string
+		BuildUUID string
+		AppName   string
 	}{
-		deployUUID: deployUUID,
-		buildUUID:  buildUUID,
-		AppName:    appName,
+		UUID:      deployUUID,
+		BuildUUID: buildUUID,
+		AppName:   appName,
 	}
 
 	var success bool
