@@ -431,7 +431,9 @@ WHERE tl.severity >= $1
 		if err != nil {
 			return nil, err
 		}
+
+		logs = append(logs, l)
 	}
 
-	return logs, err
+	return logs, nil
 }

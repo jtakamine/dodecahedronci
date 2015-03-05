@@ -46,6 +46,12 @@ func (*RPCDeployer) Execute(buildUUID string, uuid *string) (err error) {
 	go func() {
 		writer := logutil.NewWriter("deploy", *uuid)
 
+		err = killDeployments(writer.CreateChild())
+		if err != nil {
+			rpcRecordCompletion(*uuid, false)
+			return
+		}
+
 		err = deploy(art, writer)
 		if err != nil {
 			rpcRecordCompletion(*uuid, false)

@@ -62,7 +62,7 @@ func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	if b != (BuildDetails{}) {
+	if b.UUID != "" {
 		err = enc.Encode(b)
 	} else {
 		err = enc.Encode(struct{}{})
@@ -146,7 +146,7 @@ func handleGetDeploy(w http.ResponseWriter, r *http.Request) {
 
 	enc := json.NewEncoder(w)
 
-	if d != (DeployDetails{}) {
+	if d.UUID != "" {
 		err = enc.Encode(d)
 	} else {
 		err = enc.Encode(struct{}{})
@@ -157,8 +157,30 @@ func handleGetDeploy(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetLogs(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	vars := mux.Vars(r)
+	sevStr := r.URL.Query().Get("sev")
+
+	var sev int
+	var err error
+	if sevStr != "" {
+		sev, err = strconv.Atoi(sevStr)
+		if err != nil {
+			panic("Error parsing severity from query string: " + err.Error())
+		}
+	}
+
+	ls, err := rpcGetLogs(vars["id"], sev)
+	if err != nil {
+		panic("Error getting logs: " + err.Error())
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(ls)
+	if err != nil {
+		panic("Error encoding response: " + err.Error())
+	}
 }
+
 func handleStreamLogs(w http.ResponseWriter, r *http.Request) {
 	panic("Not yet implemented!")
 }

@@ -59,14 +59,21 @@ func deploy(buildArtifact string, writer *logutil.Writer) (err error) {
 	return nil
 }
 
-func killDeployments() (err error) {
-	cmd := exec.Command("fig", "kill")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+func killDeployments(writer *logutil.Writer) (err error) {
+	writer.WriteType("Attemping to kill running deployments to avoid port conflicts...", logutil.Info)
+	figFile := os.Getenv("FIG_FILE")
+	if figFile != "" {
+		cmd := exec.Command("fig", "kill")
+		cmd.Stderr = writer.CreateWriter(logutil.Error)
+		cmd.Stdout = writer.CreateWriter(logutil.Verbose)
 
-	err = cmd.Run()
-	if err != nil {
-		return err
+		err = cmd.Run()
+		if err != nil {
+			return err
+		}
+		writer.WriteType("Successfully killed running deployments.", logutil.Info)
+	} else {
+		writer.WriteType("No deployments currently running.", logutil.Info)
 	}
 
 	return nil
