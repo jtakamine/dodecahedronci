@@ -214,10 +214,13 @@ func saveDeploy(deployUUID string, buildUUID string, appName string, connStr str
 
 	s := `
 INSERT INTO task(parent_id, task_type_id, application_id, uuid)
-	SELECT $1, tt.id, a.id, $2
-	FROM task_type tt
+	SELECT t.id, tt.id, a.id, $1
+	FROM task t
+		CROSS JOIN task_type tt
 		CROSS JOIN application a
-	WHERE tt.code = 'deploy'
+	WHERE 
+		t.uuid = $2
+		AND tt.code = 'deploy'
 		AND a.name = $3
 `
 
@@ -226,7 +229,7 @@ INSERT INTO task(parent_id, task_type_id, application_id, uuid)
 		return err
 	}
 
-	_, err = st.Exec(buildUUID, deployUUID, appName)
+	_, err = st.Exec(deployUUID, buildUUID, appName)
 	if err != nil {
 		return err
 	}
@@ -293,6 +296,7 @@ ORDER BY t.id
 
 	rows, err := st.Query(appName)
 
+	deploys = make([]Deploy, 0)
 	for rows.Next() {
 		d := Deploy{}
 		err = rows.Scan(&d.UUID, &d.AppName, &d.BuildUUID)

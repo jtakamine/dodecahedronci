@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jtakamine/dodecahedronci/logutil"
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
@@ -35,15 +36,24 @@ type RPCDeployer struct{}
 func (*RPCDeployer) Execute(buildUUID string, uuid *string) (err error) {
 	*uuid = generateRandID(8)
 
-	a, err := rpcGetBuildArtifact(buildUUID)
+	art, app, err := rpcGetBuildData(buildUUID)
+
+	err = rpcSaveDeploy(*uuid, buildUUID, app)
 	if err != nil {
 		return err
 	}
 
-	err = deploy(a)
-	if err != nil {
-		return err
-	}
+	go func() {
+		writer := logutil.NewWriter("deploy", *uuid)
+
+		err = deploy(art, writer)
+		if err != nil {
+			rpcRecordCompletion(*uuid, false)
+			return
+		}
+
+		rpcRecordCompletion(*uuid, true)
+	}()
 
 	return nil
 }

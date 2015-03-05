@@ -53,15 +53,15 @@ var rpcRegisterService = func() (err error) {
 	return nil
 }
 
-var rpcGetBuildArtifact = func(buildUUID string) (artifact string, err error) {
+var rpcGetBuildData = func(buildUUID string) (artifact string, appName string, err error) {
 	addr := os.Getenv("DODEC_REPOADDR")
 	if addr == "" {
-		return "", errors.New("Missing environment variable: DODEC_REPOADDR")
+		return "", "", errors.New("Missing environment variable: DODEC_REPOADDR")
 	}
 
 	conn, err := net.DialTimeout("tcp", addr, time.Second)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	c := jsonrpc.NewClient(conn)
@@ -78,14 +78,26 @@ var rpcGetBuildArtifact = func(buildUUID string) (artifact string, err error) {
 
 	err = c.Call("BuildRepo.Get", buildUUID, &b)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return b.Artifact, nil
+	return b.Artifact, b.AppName, nil
 }
 
-var rpcSaveDeploy = func(buildUUID string, deployUUID string, appName string) (err error) {
-	_ = struct {
+var rpcSaveDeploy = func(deployUUID string, buildUUID string, appName string) (err error) {
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+
+	c := jsonrpc.NewClient(conn)
+
+	d := struct {
 		deployUUID string
 		buildUUID  string
 		AppName    string
@@ -93,6 +105,40 @@ var rpcSaveDeploy = func(buildUUID string, deployUUID string, appName string) (e
 		deployUUID: deployUUID,
 		buildUUID:  buildUUID,
 		AppName:    appName,
+	}
+
+	var success bool
+	err = c.Call("DeployRepo.Save", d, &success)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var rpcRecordCompletion = func(uuid string, success bool) (err error) {
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+	c := jsonrpc.NewClient(conn)
+
+	args := struct {
+		UUID    string
+		Success bool
+	}{
+		UUID:    uuid,
+		Success: success,
+	}
+
+	err = c.Call("TaskRepo.RecordCompletion", args, &success)
+	if err != nil {
+		return err
 	}
 
 	return nil

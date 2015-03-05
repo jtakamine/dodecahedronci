@@ -1,5 +1,3 @@
-#imagenamehint:dodecdeploy
-
 FROM golang
 
 # Adapted from https://github.com/tehranian/dind-jenkins-slave/blob/master/Dockerfile
@@ -31,10 +29,12 @@ ENV PATH /usr/local/bin/:$PATH
 RUN go get github.com/jtakamine/stdroute #15.02.16
 RUN go install github.com/jtakamine/stdroute
 
+# Get Internal Go packages
+RUN go get github.com/jtakamine/dodecahedronci/logutil
+
 # Get source and install application
 ADD . /go/src/github.com/jtakamine/dodecahedronci/dodecdeploy
-WORKDIR /go/src/github.com/jtakamine/dodecahedronci/dodecdeploy
-RUN go install
+RUN go install github.com/jtakamine/dodecahedronci/dodecdeploy
 
 EXPOSE 9000
 

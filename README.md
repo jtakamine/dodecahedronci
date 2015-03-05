@@ -20,6 +20,7 @@ DodecahedronCI is composed of 6 microservices:
 * [dockerregistry](https://github.com/docker/docker-registry)
 * [dodecrepo](dodecrepo/)
 * [dodecrepodb](dodecrepodb/)
+
 ![](arch.png)
 
 
