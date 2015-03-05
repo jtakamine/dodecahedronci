@@ -9,12 +9,10 @@ func main() {
 	port := parseArgs()
 	log.Printf("Listening on port %v\n", port)
 
-	log.Println("Here1")
 	err := rpcRegisterService()
 	if err != nil {
 		panic("Error registering with controller: " + err.Error())
 	}
-	log.Println("here2")
 
 	err = rpcListen(port)
 	if err != nil {

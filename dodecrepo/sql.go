@@ -4,14 +4,20 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
+	"time"
 )
 
+var database *sql.DB
+
 func getDB(connStr string) (db *sql.DB, err error) {
-	db, err = sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, err
+	if database == nil {
+		database, err = sql.Open("postgres", connStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	db = database
 	return db, nil
 }
 
@@ -57,7 +63,8 @@ WHERE name = $1
 	}
 
 	err = st.QueryRow(name).Scan(&a.Name, &a.Description)
-	if err != nil {
+
+	if err != nil && err != sql.ErrNoRows {
 		return Application{}, err
 	}
 
@@ -149,7 +156,7 @@ WHERE t.uuid = $1
 	nArtifact := sql.NullString{}
 
 	err = st.QueryRow(uuid).Scan(&b.UUID, &b.AppName, &b.Version, &b.Started, &nCompleted, &nSuccess, &nArtifact)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return BuildDetails{}, err
 	}
 
@@ -264,7 +271,7 @@ WHERE t.uuid = $1
 	nSuccess := sql.NullBool{}
 
 	err = st.QueryRow(uuid).Scan(&d.UUID, &d.AppName, &d.Started, &nCompleted, &nSuccess, &d.BuildUUID)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return DeployDetails{}, err
 	}
 
@@ -368,4 +375,63 @@ WHERE uuid = $2
 	}
 
 	return nil
+}
+
+func saveLog(taskUUID string, message string, severity int, created time.Time, connStr string) (err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return err
+	}
+
+	s := `
+INSERT INTO task_log (task_id, severity, message, created)
+	SELECT t.id, $1, $2, $3
+	FROM task t
+	WHERE t.uuid = $4
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return err
+	}
+
+	_, err = st.Exec(severity, message, created, taskUUID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getLogs(taskUUID string, severity int, connStr string) (logs []Log, err error) {
+	db, err := getDB(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	s := `
+SELECT t.uuid, tl.message, tl.severity, tl.created
+FROM task_log tl
+	INNER JOIN task t on t.id = tl.task_id
+WHERE tl.severity >= $1
+	AND t.uuid = $2
+`
+
+	st, err := db.Prepare(s)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := st.Query(severity, taskUUID)
+
+	logs = make([]Log, 0)
+	for rows.Next() {
+		l := Log{}
+		err = rows.Scan(&l.TaskUUID, &l.Message, &l.Severity, &l.Created)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return logs, err
 }

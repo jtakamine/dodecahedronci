@@ -35,6 +35,8 @@ func rpcListen(port int) (err error) {
 		return err
 	}
 
+	err = rpc.RegisterName("LogRepo", &RPCLogRepo{})
+
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		return err
@@ -203,5 +205,36 @@ func (*RPCArtifactRepo) Save(a Artifact, success *bool) (err error) {
 	}
 
 	*success = true
+	return nil
+}
+
+type RPCLogRepo struct{}
+
+func (*RPCLogRepo) Save(l Log, success *bool) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	err = saveLog(l.TaskUUID, l.Message, l.Severity, l.Created, c)
+	if err != nil {
+		return err
+	}
+
+	*success = true
+	return nil
+}
+
+func (*RPCLogRepo) GetAll(lq LogQuery, ls *[]Log) (err error) {
+	c, err := getConnStr()
+	if err != nil {
+		return err
+	}
+
+	*ls, err = getLogs(lq.TaskUUID, lq.Severity, c)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

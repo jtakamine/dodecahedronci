@@ -62,7 +62,11 @@ func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	err = enc.Encode(b)
+	if b != (BuildDetails{}) {
+		err = enc.Encode(b)
+	} else {
+		err = enc.Encode(struct{}{})
+	}
 	if err != nil {
 		panic("Error encoding response: " + err.Error())
 	}
@@ -99,8 +103,7 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 
-			zeroTime := time.Time{}
-			if !b.Completed.Equal(zeroTime) {
+			if !b.Completed.Equal(time.Time{}) {
 				break
 			}
 
@@ -142,7 +145,12 @@ func handleGetDeploy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	err = enc.Encode(d)
+
+	if d != (DeployDetails{}) {
+		err = enc.Encode(d)
+	} else {
+		err = enc.Encode(struct{}{})
+	}
 	if err != nil {
 		panic("Error encoding response: " + err.Error())
 	}

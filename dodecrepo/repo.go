@@ -52,3 +52,15 @@ type Artifact struct {
 	Type      string
 	BuildUUID string
 }
+
+type LogQuery struct {
+	TaskUUID string
+	Severity int
+}
+
+type Log struct {
+	TaskUUID string
+	Message  string
+	Severity int
+	Created  time.Time
+}

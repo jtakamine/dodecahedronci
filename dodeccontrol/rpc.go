@@ -40,23 +40,14 @@ func rpcListen(port int) (err error) {
 type RPCLogger struct{}
 
 func (rpcL *RPCLogger) Write(log string, success *bool) (err error) {
-	msg, _, logType, taskID, src := parseLog(log)
+	l := parseLog(log)
 
-	ls, ok := logs[src]
-	if !ok {
-		ls = make(map[string][]LogEntry)
+	err = rpcSaveLog(l)
+	if err != nil {
+		return err
 	}
 
-	l, ok := ls[taskID]
-	if !ok {
-		l = []LogEntry{}
-	}
-
-	l = append(l, LogEntry{Type: logType, Msg: msg})
-	ls[taskID] = l
-	logs[src] = ls
-
-	fmt.Printf("logged: %s\n", msg)
+	fmt.Printf("logged: %v\n", l)
 
 	return nil
 }

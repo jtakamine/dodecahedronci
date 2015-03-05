@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS task_log (
 	id 		bigserial PRIMARY KEY,
 	task_id		integer NOT NULL REFERENCES task (id),
 	severity 	smallint NOT NULL,
-	message 	text NOT NULL
+	message 	text NOT NULL,
+	created		timestamp NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS task_artifact (

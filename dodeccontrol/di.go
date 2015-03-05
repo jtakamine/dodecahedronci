@@ -181,3 +181,54 @@ var rpcGetDeploys = func(appName string) (ds []Deploy, err error) {
 
 	return ds, nil
 }
+
+var rpcSaveLog = func(l Log) (err error) {
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return err
+	}
+
+	c := jsonrpc.NewClient(conn)
+
+	var success bool
+	err = c.Call("LogRepo.Save", l, &success)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var rpcGetLogs = func(taskUUID string, severity int) (ls []Log, err error) {
+	addr := os.Getenv("DODEC_REPOADDR")
+	if addr == "" {
+		return nil, errors.New("Missing environment variable: DODEC_REPOADDR")
+	}
+
+	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	c := jsonrpc.NewClient(conn)
+
+	args := struct {
+		TaskUUID string
+		Severity int
+	}{
+		TaskUUID: taskUUID,
+		Severity: severity,
+	}
+
+	err = c.Call("LogRepo.GetAll", args, &ls)
+	if err != nil {
+		return nil, err
+	}
+
+	return ls, nil
+}
