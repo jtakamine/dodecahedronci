@@ -28,27 +28,22 @@ Step 1: Get the source code
 ---------------------------
 
     $ git clone https://github.com/jtakamine/dodecahedronci.git ~/go/src/github.com/jtakamine/dodecahedronci
-
-Step 2: Get Go dependencies
----------------------------
-
-    $ cd ~/go/src/github.com/jtakamine/dodecahedronci
-    $ go get -d ./...
     
-Step 3: Install the client tool
+Step 2: Install the client tool
 -------------------------------
 
     $ cd ~/go/src/github.com/jtakamine/dodecahedronci/dodec-cli
+    $ go get -d
     $ go install
     
-Step 4: Start the server
+Step 3: Start the server
 ------------------------
 The following may take quite a while the first time around. Docker will need to pull relatively large base images if they are not already present in your cache.
 
     $ cd ~/go/src/github.com/jtakamine/dodecahedronci
     $ fig up
     
-Step 5: Trigger a build
+Step 4: Trigger a build
 -----------------------
 You may need to add the Go bin directory to your PATH in order to run the below.
 
@@ -57,12 +52,15 @@ You may need to add the Go bin directory to your PATH in order to run the below.
 Architecture
 ============
 
-DodecahedronCI is composed of 6 microservices:
+The DodecahedronCI server is composed of 6 microservices:
 * [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes public API.
 * [dodecbuild](dodecbuild/) builds Git repos and produces releases.
 * [dodecdeploy](dodecdeploy/) deploys releases.
 * [dockerregistry](https://github.com/docker/docker-registry) stores docker images.
 * [dodecrepo](dodecrepo/) saves/retrieves app data to/from dodecrepodb.
 * [dodecrepodb](dodecrepodb/) persists app data (PostgreSQL DB).
+
+DodecahedronCI comes with a CLI client:
+* [dodec-cli](dodec-cli/) wraps dodeccontrol's HTTP API in a friendly command-line interface.
 
 ![](arch.png)
