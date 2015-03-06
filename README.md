@@ -82,7 +82,7 @@ If you encounter an error above, you may need to add the Go bin directory to you
 
 Step 6: View the build logs
 ---------------------------
-In the command below, use the UUID returned in Step 4.
+In the command below, use the UUID returned in the previous step.
 
     $ dodec-cli taillogs 6ea3ef202b176db5
     Output:
