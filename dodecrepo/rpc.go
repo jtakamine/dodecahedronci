@@ -87,18 +87,17 @@ func (*RPCApplicationRepo) Get(name string, a *Application) (err error) {
 
 type RPCBuildRepo struct{}
 
-func (*RPCBuildRepo) Save(b Build, success *bool) (err error) {
+func (*RPCBuildRepo) Save(b Build, version *string) (err error) {
 	c, err := getConnStr()
 	if err != nil {
 		return err
 	}
 
-	err = saveBuild(b.UUID, b.AppName, b.Version, c)
+	*version, err = saveBuild(b.UUID, b.AppName, c)
 	if err != nil {
 		return err
 	}
 
-	*success = true
 	return nil
 }
 

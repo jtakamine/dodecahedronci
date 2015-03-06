@@ -71,10 +71,10 @@ WHERE name = $1
 	return a, nil
 }
 
-func saveBuild(uuid string, appName string, version string, connStr string) (err error) {
+func saveBuild(uuid string, appName string, connStr string) (version string, err error) {
 	db, err := getDB(connStr)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	s1 := `
@@ -89,44 +89,63 @@ INSERT INTO task (task_type_id, application_id, uuid)
 
 	s2 := `
 INSERT INTO task_attribute (task_id, task_attribute_type_id, value)
-	SELECT $1, tat.id, $2
-	FROM task_attribute_type tat
-	WHERE tat.code = 'version'
+	SELECT $1, x.tat_id, x.ver
+	FROM (
+		SELECT y.tat_id, array_to_string(ARRAY[y.vArr[1], y.vArr[2], y.vArr[3], y.vArr[4]+1], '.') as ver
+		FROM (
+			SELECT tat.id as tat_id, regexp_split_to_array(ta.value, E'\\.')::int[] as vArr
+			FROM task t
+				INNER JOIN application a on a.id = t.application_id
+				INNER JOIN task_attribute ta on ta.task_id = t.id
+				INNER JOIN task_attribute_type tat on tat.id = ta.task_attribute_type_id
+			WHERE tat.code = 'version'
+				AND a.name = $2
+		) y
+
+		UNION
+
+		SELECT tat.id as tat_id, '0.0.0.1' as ver
+		FROM task_attribute_type tat
+		WHERE tat.code = 'version'
+	) x
+	ORDER BY x.ver desc
+	LIMIT 1
+	RETURNING value
 `
 
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer tx.Rollback()
 
 	st1, err := db.Prepare(s1)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	st2, err := db.Prepare(s2)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var id int
 	err = st1.QueryRow(uuid, appName).Scan(&id)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	_, err = st2.Exec(id, version)
+	err = st2.QueryRow(id, appName).Scan(&version)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return version, nil
 }
 
 func getBuild(uuid string, connStr string) (b BuildDetails, err error) {

@@ -51,35 +51,32 @@ var buildDockerFile = func(dFile string, version string, writer *logutil.Writer)
 	return tag, nil
 }
 
-var saveBuild = func(uuid string, appName string, version string) (err error) {
+var saveBuild = func(uuid string, appName string) (version string, err error) {
 	build := struct {
 		UUID    string
 		AppName string
-		Version string
 	}{
 		UUID:    uuid,
 		AppName: appName,
-		Version: version,
 	}
 
 	addr := os.Getenv("DODEC_REPOADDR")
 	if addr == "" {
-		return errors.New("Missing environment variable: DODEC_REPOADDR")
+		return "", errors.New("Missing environment variable: DODEC_REPOADDR")
 	}
 
 	conn, err := net.DialTimeout("tcp", addr, time.Second)
 	if err != nil {
-		return err
+		return "", err
 	}
 	c := jsonrpc.NewClient(conn)
 
-	var success bool
-	err = c.Call("BuildRepo.Save", build, &success)
+	err = c.Call("BuildRepo.Save", build, &version)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return version, nil
 }
 
 var saveBuildArtifact = func(uuid string, fFile figFile) (err error) {

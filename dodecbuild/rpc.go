@@ -40,9 +40,8 @@ type RPCBuilder struct{}
 
 func (*RPCBuilder) Execute(args ExecuteBuildArgs, uuid *string) (err error) {
 	*uuid = generateRandID(8)
-	version := getNextVersion(args.AppName)
 
-	err = saveBuild(*uuid, args.AppName, version)
+	version, err := saveBuild(*uuid, args.AppName)
 	if err != nil {
 		return err
 	}
