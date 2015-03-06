@@ -97,7 +97,7 @@ Architecture
 
 The DodecahedronCI server is composed of 6 microservices:
 * [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes the public API.
-* [dodecbuild](dodecbuild/) builds Git repos and produces releases.
+* [dodecbuild](dodecbuild/) pulls Git repos, builds Dockerfiles, and produces releases.
 * [dodecdeploy](dodecdeploy/) deploys releases.
 * [dockerregistry](https://github.com/docker/docker-registry) stores docker images.
 * [dodecrepo](dodecrepo/) saves/retrieves app data to/from dodecrepodb.
