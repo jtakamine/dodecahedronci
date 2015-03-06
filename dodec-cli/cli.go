@@ -139,11 +139,13 @@ func execBuild(endpt string, c *cli.Context) {
 	addr := endpt + "builds?deploy=" + strconv.FormatBool(deploy)
 
 	body := struct {
-		RepoUrl string
-		AppName string
+		RepoUrl     string
+		AppName     string
+		Description string
 	}{
-		RepoUrl: repoUrl,
-		AppName: appName,
+		RepoUrl:     repoUrl,
+		AppName:     appName,
+		Description: "none", //TODO: pull from cli flags?
 	}
 
 	resp := struct {

@@ -64,8 +64,9 @@ func handlePostBuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reqBody := struct {
-		RepoUrl string
-		AppName string
+		RepoUrl     string
+		AppName     string
+		Description string
 	}{}
 
 	dec := json.NewDecoder(r.Body)
@@ -74,7 +75,7 @@ func handlePostBuild(w http.ResponseWriter, r *http.Request) {
 		panic("Error decoding request body: " + err.Error())
 	}
 
-	uuid, err := execBuild(reqBody.RepoUrl, reqBody.AppName, deploy)
+	uuid, err := execBuild(reqBody.RepoUrl, reqBody.AppName, reqBody.Description, deploy)
 	if err != nil {
 		panic("Error executing RPC Build: " + err.Error())
 	}
@@ -113,15 +114,7 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 		panic("Error parsing GitHub request: " + err.Error())
 	}
 
-	app, err := rpcGetApplication(appName)
-	if app.Name == "" {
-		err = rpcAddApplication(appName, description)
-		if err != nil {
-			panic("Error adding application: " + err.Error())
-		}
-	}
-
-	uuid, err := execBuild(repoUrl, appName, true)
+	uuid, err := execBuild(repoUrl, appName, description, true)
 	if err != nil {
 		panic("Error executing RPC Build: " + err.Error())
 	}

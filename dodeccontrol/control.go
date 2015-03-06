@@ -118,7 +118,15 @@ func parseLog(log string) (l Log) {
 	return l
 }
 
-func execBuild(repoUrl string, appName string, deploy bool) (uuid string, err error) {
+func execBuild(repoUrl string, appName string, description string, deploy bool) (uuid string, err error) {
+	app, err := rpcGetApplication(appName)
+	if app.Name == "" {
+		err = rpcAddApplication(appName, description)
+		if err != nil {
+			panic("Error adding application: " + err.Error())
+		}
+	}
+
 	buildUUID, err := rpcExecuteBuild(repoUrl, appName)
 	if err != nil {
 		return "", err
