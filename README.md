@@ -16,21 +16,43 @@ The name "DodecahedronCI" is a reaction against a recent branding trend that fav
 
 Setup
 =====
-Prerequisites:
+Prerequisites
+-------------
 * [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 * [Go](https://golang.org/doc/install)
 * [Docker](https://docs.docker.com/installation/)
-* [Fig 1.0.1](http://www.fig.sh/install.html) (support for Compose 1.1.0 TBD)
+* [Fig 1.0.1](http://www.fig.sh/install.html)
+  * Support for [Compose 1.1.0](https://github.com/docker/compose/releases) TBD
 
-Step 1: Get the source code.
+Step 1: Get the source code
+---------------------------
 
     $ git clone https://github.com/jtakamine/dodecahedronci.git ~/go/src/github.com/jtakamine/dodecahedronci
 
-Step 2: Get Go dependencies.
+Step 2: Get Go dependencies
+---------------------------
 
     $ cd ~/go/src/github.com/jtakamine/dodecahedronci
     $ go get -d ./...
     
+Step 3: Install the client tool
+-------------------------------
+
+    $ cd ~/go/src/github.com/jtakamine/dodecahedronci/dodec-cli
+    $ go install
+    
+Step 4: Start the server
+------------------------
+The following may take quite a while the first time around. Docker will need to pull relatively large base images if they are not already present in your cache.
+
+    $ cd ~/go/src/github.com/jtakamine/dodecahedronci
+    $ fig up
+    
+Step 5: Trigger a build
+-----------------------
+You may need to add the Go bin directory to your PATH in order to run the below.
+
+    $ 
 
 Architecture
 ============
