@@ -16,6 +16,8 @@ The name "DodecahedronCI" is a reaction against a recent branding trend that fav
 
 Setup
 =====
+Get DodecahedronCI running locally
+
 Prerequisites
 -------------
 * [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
@@ -47,7 +49,23 @@ Step 4: Trigger a build
 -----------------------
 You may need to add the Go bin directory to your PATH in order to run the below.
 
-    $ 
+    $ dodec-cli execbuild https://github.com/jtakamine/mockrepo.git
+    UUID
+    6ea3ef202b176db5
+
+Step 5: View the build logs
+---------------------------
+In the command below, use the UUID returned in Step 4.
+
+    $ dodec-cli taillogs 6ea3ef202b176db5
+    2015-03-06T12:25:35Z	 Pulling git repo from https://github.com/jtakamine/mockrepo.git...
+    2015-03-06T12:25:35Z	    From https://github.com/jtakamine/mockrepo
+    2015-03-06T12:25:35Z	     * branch            HEAD       -> FETCH\_HEAD
+    ...
+
+Step 5: Explore
+---------------
+Check out the [dodec-cli](dodec-cli/) folder for more info about how to use DodecahedronCI.
 
 Architecture
 ============

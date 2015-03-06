@@ -117,3 +117,35 @@ func parseLog(log string) (l Log) {
 
 	return l
 }
+
+func execBuild(repoUrl string, appName string, deploy bool) (uuid string, err error) {
+	buildUUID, err := rpcExecuteBuild(repoUrl, appName)
+	if err != nil {
+		return "", err
+	}
+
+	if deploy {
+		go func() {
+			for {
+				b, err := rpcGetBuild(buildUUID)
+				if err != nil {
+					panic(err)
+				}
+
+				if !b.Completed.Equal(time.Time{}) {
+					break
+				}
+
+				time.Sleep(time.Second * 5)
+			}
+
+			_, err := rpcExecuteDeploy(buildUUID)
+			if err != nil {
+				panic(err)
+			}
+
+		}()
+	}
+
+	return buildUUID, nil
+}

@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func httpListen(port int) {
@@ -50,9 +49,39 @@ func handleGetBuilds(w http.ResponseWriter, r *http.Request) {
 		panic("Error encoding response: " + err.Error())
 	}
 }
+
 func handlePostBuild(w http.ResponseWriter, r *http.Request) {
-	panic("Not yet implemented!")
+	vals := r.URL.Query()
+	deployStr := vals.Get("deploy")
+
+	var err error
+	var deploy bool
+	if deployStr != "" {
+		deploy, err = strconv.ParseBool(deployStr)
+		if err != nil {
+			panic("Error parsing \"deploy\" query argument: " + err.Error())
+		}
+	}
+
+	reqBody := struct {
+		RepoUrl string
+		AppName string
+	}{}
+
+	dec := json.NewDecoder(r.Body)
+	err = dec.Decode(&reqBody)
+	if err != nil {
+		panic("Error decoding request body: " + err.Error())
+	}
+
+	uuid, err := execBuild(reqBody.RepoUrl, reqBody.AppName, deploy)
+	if err != nil {
+		panic("Error executing RPC Build: " + err.Error())
+	}
+
+	fmt.Fprintf(w, "{\"UUID\": \"%s\"}", uuid)
 }
+
 func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -62,6 +91,7 @@ func handleGetBuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
+
 	if b.UUID != "" {
 		err = enc.Encode(b)
 	} else {
@@ -91,32 +121,12 @@ func handlePostGitHubBuild(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	buildUUID, err := rpcExecuteBuild(repoUrl, appName)
+	uuid, err := execBuild(repoUrl, appName, true)
 	if err != nil {
-		panic("Error executing RPC Build Execute: " + err.Error())
+		panic("Error executing RPC Build: " + err.Error())
 	}
 
-	go func() {
-		for {
-			b, err := rpcGetBuild(buildUUID)
-			if err != nil {
-				panic(err)
-			}
-
-			if !b.Completed.Equal(time.Time{}) {
-				break
-			}
-
-			time.Sleep(time.Second * 5)
-		}
-
-		deployUUID, err := rpcExecuteDeploy(buildUUID)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Fprintf(w, "{buildUUID: \"%s\"; deployUUID: \"%s\"}", buildUUID, deployUUID)
-	}()
+	fmt.Fprintf(w, "{\"UUID:\" \"%s\"}", uuid)
 }
 
 func handleGetDeploys(w http.ResponseWriter, r *http.Request) {

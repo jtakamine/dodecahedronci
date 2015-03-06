@@ -14,7 +14,16 @@ import (
 )
 
 func req(url string, method string, response interface{}) (err error) {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte{}))
+	return reqBody(url, method, struct{}{}, response)
+}
+
+func reqBody(url string, method string, body interface{}, response interface{}) (err error) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

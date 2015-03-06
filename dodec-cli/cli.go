@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -71,6 +72,22 @@ func initApp() (app *cli.App) {
 
 	app.Commands = []cli.Command{
 		{
+			Name:      "execbuild",
+			ShortName: "eb",
+			Usage:     "Execute a build for the specified Git Repo",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "app, a",
+					Usage: "The application name",
+				},
+				cli.BoolFlag{
+					Name:  "deploy, d",
+					Usage: "Deploy the application after the build is complete?",
+				},
+			},
+			Action: newAction(execBuild),
+		},
+		{
 			Name:      "listbuilds",
 			ShortName: "lb",
 			Usage:     "List all builds",
@@ -109,6 +126,42 @@ func initApp() (app *cli.App) {
 	}
 
 	return app
+}
+
+func execBuild(endpt string, c *cli.Context) {
+	repoUrl := requireArg(c.Args(), "execbuild", "Git Repo URL", "https://github.com/jtakamine/mockrepo.git")
+	appName := c.String("app")
+	if appName == "" {
+		urlParts := strings.Split(repoUrl, "/")
+		appName = strings.TrimSuffix(urlParts[len(urlParts)-1], ".git")
+	}
+	deploy := c.Bool("deploy")
+	addr := endpt + "builds?deploy=" + strconv.FormatBool(deploy)
+
+	body := struct {
+		RepoUrl string
+		AppName string
+	}{
+		RepoUrl: repoUrl,
+		AppName: appName,
+	}
+
+	resp := struct {
+		UUID string
+	}{}
+
+	err := reqBody(addr, "POST", body, &resp)
+	if err != nil {
+		panic(err)
+	}
+
+	rows := []struct {
+		UUID string
+	}{
+		resp,
+	}
+
+	printRows(rows, true)
 }
 
 func listBuilds(endpt string, c *cli.Context) {
