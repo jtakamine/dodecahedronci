@@ -54,13 +54,10 @@ If you get an error above, you may need to give your current (non-root) user acc
     $ sudo groupadd docker
     $ sudo gpasswd -a ${USER} docker
     
-    # If you are in Ubuntu 14.04, replace "docker" with docker.io
+    # If you are in Ubuntu, you may need to replace "docker" with "docker.io"
     $ sudo service docker restart
     
     $ newgrp docker
-
-    # If you are in Ubuntu 14.04, replace "docker" with "docker.io"
-    $ sudo service docker restart
     
 Step 4 (boot2docker only): Set CLI target endpoint
 --------------------------------------------------
