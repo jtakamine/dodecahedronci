@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-//in-memory log storage--eventually this should be persistent
 var buildAddr string
 var deployAddr string
 
