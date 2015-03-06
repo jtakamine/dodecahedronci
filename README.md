@@ -12,11 +12,11 @@ Through this project, I have introduced myself to the following tools and techno
 
 Etymology
 =========
-The name "DodecahedronCI" is a reaction against a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. DodecahedronCI's governing philosophy is to reject the fad of simple, lightweight components, and favor complicated monolithic systems. (just kidding!)
+The name "DodecahedronCI" is a reaction against a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. DodecahedronCI's governing philosophy is to reject the fad of simple lightweight components, and favor complicated monolithic systems. (just kidding!)
 
 Setup
 =====
-Get DodecahedronCI running locally
+Instructions to run DodecahedronCI locally.
 
 Prerequisites
 -------------
@@ -45,7 +45,15 @@ The following may take quite a while the first time around. Docker will need to 
     $ cd ~/go/src/github.com/jtakamine/dodecahedronci
     $ fig up
     
-Step 4: Trigger a build
+Step 4 (boot2docker only): Set CLI target endpoint
+--------------------------------------------------
+If you are using boot2docker, you will need to override the default CLI target endpoint. Find the boot2docker VM's IP address and assign that value to the DODEC_ENDPOINT environment variable:
+
+    $ boot2docker ip
+    192.168.59.103
+    $ export DODEC_ENDPOINT=192.168.59.103
+    
+Step 5: Trigger a build
 -----------------------
 You may need to add the Go bin directory to your PATH in order to run the below.
 
@@ -53,7 +61,7 @@ You may need to add the Go bin directory to your PATH in order to run the below.
     UUID
     6ea3ef202b176db5
 
-Step 5: View the build logs
+Step 6: View the build logs
 ---------------------------
 In the command below, use the UUID returned in Step 4.
 
@@ -63,7 +71,7 @@ In the command below, use the UUID returned in Step 4.
     2015-03-06T12:25:35Z	     * branch            HEAD       -> FETCH\_HEAD
     ...
 
-Step 5: Explore
+Step 7: Explore
 ---------------
 Check out the [dodec-cli](dodec-cli/) folder for more info about how to use DodecahedronCI.
 
@@ -71,7 +79,7 @@ Architecture
 ============
 
 The DodecahedronCI server is composed of 6 microservices:
-* [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes public API.
+* [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes the public API.
 * [dodecbuild](dodecbuild/) builds Git repos and produces releases.
 * [dodecdeploy](dodecdeploy/) deploys releases.
 * [dockerregistry](https://github.com/docker/docker-registry) stores docker images.
