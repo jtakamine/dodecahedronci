@@ -1,8 +1,6 @@
-Introduction: DodecahedronCI
-============================
-
-DodecahedronCI is a continuous integration and continuous deployment server. The name "DodecahedronCI" is a rejection of a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. Additionally, DodecahedronCI itself is a rejection of the simple, lightweight component fad. DodecahedronCI favors complicated monolithic systems. (just kidding)
-
+DodecahedronCI
+==============
+DodecahedronCI is a continuous integration and deployment server built on Docker and Git.
 Through this project, I have introduced myself to the following tools and technologies:
 * Go
 * Docker/Fig
@@ -11,6 +9,28 @@ Through this project, I have introduced myself to the following tools and techno
 * Git
 * GitHub
 * Linux
+
+Etymology
+=========
+The name "DodecahedronCI" is a reaction against a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. DodecahedronCI's governing philosophy is to reject the fad of simple, lightweight components, and favor complicated monolithic systems. (just kidding!)
+
+Setup
+=====
+Prerequisites:
+* [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* [Go](https://golang.org/doc/install)
+* [Docker](https://docs.docker.com/installation/)
+* [Fig 1.0.1](http://www.fig.sh/install.html) (support for Compose 1.1.0 TBD)
+
+Step 1: Get the source code.
+
+    $ git clone https://github.com/jtakamine/dodecahedronci.git ~/go/src/github.com/jtakamine/dodecahedronci
+
+Step 2: Get Go dependencies.
+
+    $ cd ~/go/src/github.com/jtakamine/dodecahedronci
+    $ go get -d ./...
+    
 
 Architecture
 ============
