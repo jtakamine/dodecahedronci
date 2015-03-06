@@ -204,7 +204,7 @@ var rpcSaveLog = func(l Log) (err error) {
 	return nil
 }
 
-var rpcGetLogs = func(taskUUID string, severity int) (ls []Log, err error) {
+var rpcGetLogs = func(taskUUID string, severity int, startID int64) (ls []Log, err error) {
 	addr := os.Getenv("DODEC_REPOADDR")
 	if addr == "" {
 		return nil, errors.New("Missing environment variable: DODEC_REPOADDR")
@@ -220,9 +220,11 @@ var rpcGetLogs = func(taskUUID string, severity int) (ls []Log, err error) {
 	args := struct {
 		TaskUUID string
 		Severity int
+		StartID  int64
 	}{
 		TaskUUID: taskUUID,
 		Severity: severity,
+		StartID:  startID,
 	}
 
 	err = c.Call("LogRepo.GetAll", args, &ls)

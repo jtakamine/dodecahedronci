@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"strconv"
 	"time"
 )
 
@@ -43,6 +44,7 @@ type DeployDetails struct {
 }
 
 type Log struct {
+	ID       int64
 	TaskUUID string
 	Message  string
 	Severity int
@@ -52,15 +54,19 @@ type Log struct {
 func initApp() (app *cli.App) {
 	app = cli.NewApp()
 	app.Name = "dodec-cli"
+	app.Usage = "CLI client for DodecahedronCI"
+	app.Author = ""
+	app.Version = "0.0.0.1"
+	app.Email = ""
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "endpoint, e",
-			Usage:  "CLI target endpoint",
+			Usage:  "target dodeccontrol endpoint",
 			EnvVar: "DODEC_ENDPOINT",
 		},
 	}
 	app.Action = func(c *cli.Context) {
-		fmt.Println("Display usage info here...")
+		fmt.Println("Run dodec-cli help for usage info.")
 	}
 
 	app.Commands = []cli.Command{
@@ -94,6 +100,12 @@ func initApp() (app *cli.App) {
 			Usage:     "Get build or deploy logs for the specified UUID",
 			Action:    newAction(getLogs),
 		},
+		{
+			Name:      "taillogs",
+			ShortName: "tl",
+			Usage:     "\"Tail\" the build or deploy log stream for the specified UUID",
+			Action:    newAction(tailLogs),
+		},
 	}
 
 	return app
@@ -108,7 +120,7 @@ func listBuilds(endpt string, c *cli.Context) {
 		panic(err)
 	}
 
-	printRows(builds)
+	printRows(builds, true)
 }
 
 func getBuild(endpt string, c *cli.Context) {
@@ -138,7 +150,7 @@ func listDeploys(endpt string, c *cli.Context) {
 		panic(err)
 	}
 
-	printRows(deploys)
+	printRows(deploys, true)
 }
 
 func getDeploy(endpt string, c *cli.Context) {
@@ -168,5 +180,30 @@ func getLogs(endpt string, c *cli.Context) {
 		panic(err)
 	}
 
-	printLogs(logs)
+	printLogs(logs, true)
+}
+
+func tailLogs(endpt string, c *cli.Context) {
+	first := true
+	var lastID int64
+
+	for {
+		uuid := requireArg(c.Args(), "taillogs", "Build/Deploy UUID", "de08deb8e1b0ce5a")
+		addr := endpt + "task/" + uuid + "/logs?startid=" + strconv.FormatInt(lastID+1, 10)
+
+		var logs []Log
+		err := req(addr, "GET", &logs)
+		if err != nil {
+			panic(err)
+		}
+
+		printLogs(logs, first)
+
+		first = false
+		if len(logs) > 0 {
+			lastID = logs[len(logs)-1].ID
+		}
+
+		time.Sleep(time.Millisecond * 500)
+	}
 }

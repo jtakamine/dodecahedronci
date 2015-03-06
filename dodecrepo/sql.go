@@ -157,12 +157,14 @@ func getBuild(uuid string, connStr string) (b BuildDetails, err error) {
 	s := `
 SELECT t.uuid, a.name, tatt.value, t.started, t.completed, t.success, tart.artifact
 FROM task t
+	LEFT OUTER JOIN task_type tt on tt.id = t.task_type_id
 	LEFT OUTER JOIN task_attribute tatt on tatt.task_id = t.id
 	LEFT OUTER JOIN task_attribute_type tat on tat.id = tatt.task_attribute_type_id
 	LEFT OUTER JOIN task_artifact tart on tart.task_id = t.id
 	LEFT OUTER JOIN application a on a.id = t.application_id
 WHERE t.uuid = $1
 	AND tat.code = 'version'
+	AND tt.code = 'build'
 `
 
 	st, err := db.Prepare(s)
@@ -276,9 +278,11 @@ func getDeploy(uuid string, connStr string) (d DeployDetails, err error) {
 	s := `
 SELECT t.uuid, a.name, t.started, t.completed, t.success, t2.uuid
 FROM task t
+	LEFT OUTER JOIN task_type tt on tt.id = t.task_type_id
 	LEFT OUTER JOIN task t2 on t2.id = t.parent_id
 	LEFT OUTER JOIN application a on a.id = t.application_id
 WHERE t.uuid = $1
+	AND tt.code = 'deploy'
 `
 
 	st, err := db.Prepare(s)
@@ -422,18 +426,20 @@ INSERT INTO task_log (task_id, severity, message, created)
 	return nil
 }
 
-func getLogs(taskUUID string, severity int, connStr string) (logs []Log, err error) {
+func getLogs(taskUUID string, severity int, startID int64, connStr string) (logs []Log, err error) {
 	db, err := getDB(connStr)
 	if err != nil {
 		return nil, err
 	}
 
 	s := `
-SELECT t.uuid, tl.message, tl.severity, tl.created
+SELECT tl.id, t.uuid, tl.message, tl.severity, tl.created
 FROM task_log tl
 	INNER JOIN task t on t.id = tl.task_id
 WHERE tl.severity >= $1
 	AND t.uuid = $2
+	AND tl.id >= $3
+ORDER BY tl.id
 `
 
 	st, err := db.Prepare(s)
@@ -441,12 +447,12 @@ WHERE tl.severity >= $1
 		return nil, err
 	}
 
-	rows, err := st.Query(severity, taskUUID)
+	rows, err := st.Query(severity, taskUUID, startID)
 
 	logs = make([]Log, 0)
 	for rows.Next() {
 		l := Log{}
-		err = rows.Scan(&l.TaskUUID, &l.Message, &l.Severity, &l.Created)
+		err = rows.Scan(&l.ID, &l.TaskUUID, &l.Message, &l.Severity, &l.Created)
 		if err != nil {
 			return nil, err
 		}

@@ -48,6 +48,7 @@ type DeployDetails struct {
 }
 
 type Log struct {
+	ID       int64
 	TaskUUID string
 	Message  string
 	Severity int

@@ -35,9 +35,9 @@ func req(url string, method string, response interface{}) (err error) {
 
 func newAction(inner func(string, *cli.Context)) (fn func(*cli.Context)) {
 	return func(c *cli.Context) {
-		endpt := strings.Trim(c.GlobalString("endpoint"), " \t\r\n")
+		endpt := strings.Trim(c.GlobalString("endpoint"), " \t\n")
 		if endpt == "" {
-			msg := "No endpoint specified, defaulting to http://localhost:8000. If this is not the correct endpoint, please set the DODEC_ENDPOINT environment variable or use the global \"endpoint\" option (dodec-cli -endpoint <endpoint> [command])."
+			msg := "No endpoint specified, defaulting to http://localhost:8000. If this is not the correct (dodeccontrol) endpoint, please set the DODEC_ENDPOINT environment variable or use the global \"endpoint\" option: dodec-cli -endpoint <endpoint> [command]."
 			fmt.Println(msg)
 			endpt = "http://localhost:8000"
 		}
@@ -81,23 +81,28 @@ func printObj(obj interface{}) {
 	}
 }
 
-func printRows(rows interface{}) {
+func printRows(rows interface{}, header bool) {
 	rowsV := reflect.ValueOf(rows)
 	if rowsV.Len() == 0 {
-		fmt.Println("No results!")
+		if header {
+			fmt.Println("No results!")
+		}
 		return
 	}
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
 
-	colNames := []string{}
-	t := reflect.TypeOf(rowsV.Index(0).Interface())
-	for i := 0; i < t.NumField(); i++ {
-		n := strings.ToUpper(t.Field(i).Name)
-		colNames = append(colNames, n)
+	if header {
+		colNames := []string{}
+		t := reflect.TypeOf(rowsV.Index(0).Interface())
+		for i := 0; i < t.NumField(); i++ {
+			n := strings.ToUpper(t.Field(i).Name)
+			colNames = append(colNames, n)
+		}
+		fmt.Fprintln(w, strings.Join(colNames, "\t"))
 	}
-	fmt.Fprintln(w, strings.Join(colNames, "\t"))
+
 	for i := 0; i < rowsV.Len(); i++ {
 		r := rowsV.Index(i).Interface()
 		v := reflect.ValueOf(r)
@@ -116,7 +121,7 @@ func printRows(rows interface{}) {
 	}
 }
 
-func printLogs(logs []Log) {
+func printLogs(logs []Log, header bool) {
 	type row struct {
 		Timestamp string
 		Message   string
@@ -131,7 +136,7 @@ func printLogs(logs []Log) {
 		rows = append(rows, r)
 	}
 
-	printRows(rows)
+	printRows(rows, header)
 }
 
 func serialize(s string) (serializedS string) {

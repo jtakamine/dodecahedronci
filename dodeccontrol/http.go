@@ -158,9 +158,11 @@ func handleGetDeploy(w http.ResponseWriter, r *http.Request) {
 
 func handleGetLogs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	sevStr := r.URL.Query().Get("sev")
+	sevStr := r.URL.Query().Get("severity")
+	startIDStr := r.URL.Query().Get("startid")
 
 	var sev int
+	var startID int64
 	var err error
 	if sevStr != "" {
 		sev, err = strconv.Atoi(sevStr)
@@ -168,8 +170,15 @@ func handleGetLogs(w http.ResponseWriter, r *http.Request) {
 			panic("Error parsing severity from query string: " + err.Error())
 		}
 	}
+	if startIDStr != "" {
+		startID32, err := strconv.Atoi(startIDStr)
+		if err != nil {
+			panic("Error parsing startID from query string: " + err.Error())
+		}
+		startID = int64(startID32)
+	}
 
-	ls, err := rpcGetLogs(vars["id"], sev)
+	ls, err := rpcGetLogs(vars["id"], sev, startID)
 	if err != nil {
 		panic("Error getting logs: " + err.Error())
 	}

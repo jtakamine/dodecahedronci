@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
@@ -46,8 +45,6 @@ func (rpcL *RPCLogger) Write(log string, success *bool) (err error) {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("logged: %v\n", l)
 
 	return nil
 }

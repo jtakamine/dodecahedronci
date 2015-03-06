@@ -56,9 +56,11 @@ type Artifact struct {
 type LogQuery struct {
 	TaskUUID string
 	Severity int
+	StartID  int64
 }
 
 type Log struct {
+	ID       int64
 	TaskUUID string
 	Message  string
 	Severity int

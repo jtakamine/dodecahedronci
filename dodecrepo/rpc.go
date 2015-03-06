@@ -230,7 +230,7 @@ func (*RPCLogRepo) GetAll(lq LogQuery, ls *[]Log) (err error) {
 		return err
 	}
 
-	*ls, err = getLogs(lq.TaskUUID, lq.Severity, c)
+	*ls, err = getLogs(lq.TaskUUID, lq.Severity, lq.StartID, c)
 	if err != nil {
 		return err
 	}
