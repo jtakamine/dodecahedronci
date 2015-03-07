@@ -35,6 +35,8 @@ dodecdeploy:
  
 dockerregistry:
         image: registry
+        environment:
+                  GUNICORN_OPTS: "[--preload]"
 
 dodecrepo:
         build: ./dodecrepo
