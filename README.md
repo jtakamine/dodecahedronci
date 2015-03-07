@@ -14,6 +14,22 @@ Etymology
 =========
 The name "DodecahedronCI" is a reaction against a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. DodecahedronCI's governing philosophy is to reject the fad of simple lightweight components and favor complicated monolithic systems. (just kidding!)
 
+Architecture
+============
+
+The DodecahedronCI server is composed of 6 microservices:
+* [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes the public API.
+* [dodecbuild](dodecbuild/) pulls Git repos, builds Dockerfiles, and produces releases.
+* [dodecdeploy](dodecdeploy/) deploys releases.
+* [dockerregistry](https://github.com/docker/docker-registry) stores docker images.
+* [dodecrepo](dodecrepo/) saves/retrieves app data to/from dodecrepodb.
+* [dodecrepodb](dodecrepodb/) persists app data (PostgreSQL DB).
+
+DodecahedronCI comes with a CLI client:
+* [dodec-cli](dodec-cli/) wraps dodeccontrol's HTTP API in a friendly command-line interface.
+
+![](arch.png)
+
 Setup
 =====
 Instructions to run DodecahedronCI locally.
@@ -92,18 +108,3 @@ Step 7: Explore
 ---------------
 Check out the [dodec-cli](dodec-cli/) folder for more info about how to use DodecahedronCI.
 
-Architecture
-============
-
-The DodecahedronCI server is composed of 6 microservices:
-* [dodeccontrol](dodeccontrol/) controls dodecbuild/dodecdeploy, aggregates logs, and exposes the public API.
-* [dodecbuild](dodecbuild/) pulls Git repos, builds Dockerfiles, and produces releases.
-* [dodecdeploy](dodecdeploy/) deploys releases.
-* [dockerregistry](https://github.com/docker/docker-registry) stores docker images.
-* [dodecrepo](dodecrepo/) saves/retrieves app data to/from dodecrepodb.
-* [dodecrepodb](dodecrepodb/) persists app data (PostgreSQL DB).
-
-DodecahedronCI comes with a CLI client:
-* [dodec-cli](dodec-cli/) wraps dodeccontrol's HTTP API in a friendly command-line interface.
-
-![](arch.png)
