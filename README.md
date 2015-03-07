@@ -10,6 +10,46 @@ Through this project, I have introduced myself to the following tools and techno
 * GitHub
 * Linux
 
+
+Quick Start
+===========
+There is a live DodecahedronCI server running at justintakamine.com. Here's how you can interact with it:
+
+[Install Go](https://golang.org/doc/install) if you don't already have it
+
+Get the dodec-cli client
+
+    $ go get github.com/jtakamine/dodecahedronci/dodec-cli && \
+      export DODEC_ENDPOINT=justintakamine.com && \
+      export PATH=$PATH:$GOPATH/bin
+      
+List build history
+
+    $ dodec-cli listbuilds
+    
+    UUID              APPNAME   VERSION
+    4b692f137eaf2ada  mockrepo  0.0.0.1
+    c9f59e5b11c4d3fd  mockrepo  0.0.0.2
+    ...
+    
+Execute a new build
+
+    $ dodec-cli execbuild https://github.com/jtakamine/mockrepo.git
+    
+    UUID
+    6ea3ef202b176db5
+    
+Stream logs from a build
+
+    $ dodec-cli taillogs 6ea3ef202b176db5 #use the UUID returned in command above
+    
+    2015-03-06T12:25:35Z	 Pulling git repo from https://github.com/jtakamine/mockrepo.git...
+    2015-03-06T12:25:35Z	    From https://github.com/jtakamine/mockrepo
+    2015-03-06T12:25:35Z	     * branch            HEAD       -> FETCH\_HEAD
+    ...
+    
+Run `dodec-cli help` for more information about how to interact with a DodecahedronCI server.
+
 Etymology
 =========
 The name "DodecahedronCI" is a reaction against a recent branding trend that favors simple shapes/primitives: Square, Squarespace, Box, Stripe, Line, CircleCI, etc. DodecahedronCI's governing philosophy is to reject the fad of simple lightweight components and favor complicated monolithic systems. (just kidding!)
@@ -30,9 +70,11 @@ DodecahedronCI comes with a CLI client:
 
 ![](arch.png)
 
-Setup
-=====
-Instructions to run DodecahedronCI locally.
+
+
+Local Setup
+===========
+Instructions to run a DodecahedronCI server locally.
 
 Prerequisites
 -------------
@@ -47,23 +89,25 @@ Step 1: Get the source code
 
     # Make sure the GOPATH environment variable is set before continuing
     $ echo $GOPATH
-    Output:
+    
     /Users/myusername/go
     
     $ git clone https://github.com/jtakamine/dodecahedronci.git $GOPATH/src/github.com/jtakamine/dodecahedronci
     
-Step 2: Install the client tool
--------------------------------
+Step 2: Install the CLI client
+------------------------------
 
-    $ cd $GOPATH/src/github.com/jtakamine/dodecahedronci/dodec-cli
-    $ go get -d && go install
+    $ go get github.com/jtakamine/dodecahedronci/dodec-cli && \
+      export PATH=$PATH:$GOPATH/bin
+    
+    # Only run the following if you are using boot2docker
+    $ export DODEC_ENDPOINT=$(boot2docker ip)
     
 Step 3: Start the server
 ------------------------
 The following may take quite a while the first time around. Docker will need to pull relatively large base images if they are not already present in your cache.
 
-    $ cd $GOPATH/src/github.com/jtakamine/dodecahedronci
-    $ fig up
+    $ cd $GOPATH/src/github.com/jtakamine/dodecahedronci && fig up
 
 If you get an error above, you may need to give your current (non-root) user access to Docker. From the [Docker docs](https://docs.docker.com/installation/ubuntulinux/#giving-non-root-access):
 
@@ -75,36 +119,26 @@ If you get an error above, you may need to give your current (non-root) user acc
     
     $ newgrp docker
     
-Step 4 (boot2docker only): Set CLI target endpoint
---------------------------------------------------
-If you are using boot2docker, you will need to override the default dodec-cli target endpoint
-
-    $ export DODEC_ENDPOINT=$(boot2docker ip)
-    
-Step 5: Trigger a build
+Step 4: Trigger a build
 -----------------------
 
     $ dodec-cli execbuild https://github.com/jtakamine/mockrepo.git
-    Output:
+    
     UUID
     6ea3ef202b176db5
 
-If you encounter an error above, you may need to add the Go bin directory to your PATH
-
-    $ export PATH=$PATH:$GOPATH/bin
-
-Step 6: View the build logs
+Step 5: View the build logs
 ---------------------------
 In the command below, use the UUID returned in the previous step.
 
     $ dodec-cli taillogs 6ea3ef202b176db5
-    Output:
+    
     2015-03-06T12:25:35Z	 Pulling git repo from https://github.com/jtakamine/mockrepo.git...
     2015-03-06T12:25:35Z	    From https://github.com/jtakamine/mockrepo
     2015-03-06T12:25:35Z	     * branch            HEAD       -> FETCH\_HEAD
     ...
 
-Step 7: Explore
+Step 6: Explore
 ---------------
-Check out the [dodec-cli](dodec-cli/) folder for more info about how to use DodecahedronCI.
+Run `dodec-cli help` for more info about how to use DodecahedronCI.
 
