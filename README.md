@@ -90,7 +90,7 @@ Step 1: Get the source code
     # Make sure the GOPATH environment variable is set before continuing
     $ echo $GOPATH
     
-    /Users/myusername/go
+    /go
     
     $ git clone https://github.com/jtakamine/dodecahedronci.git $GOPATH/src/github.com/jtakamine/dodecahedronci
     
